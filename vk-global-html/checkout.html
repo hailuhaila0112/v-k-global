@@ -119,10 +119,10 @@
                 <input type="radio" name="payment" value="PayOS">
                 <div class="payment-method-content">
                   <div class="payment-method-left">
-                    <span class="payment-method-icon">💳</span>
+                    <span class="payment-method-icon">📱</span>
                     <div>
-                      <strong>PayOS (QR / Chuyển khoản)</strong>
-                      <span class="payment-method-desc">Thanh toán online qua VietQR, ngân hàng</span>
+                      <strong>Quét mã VietQR (PayOS)</strong>
+                      <span class="payment-method-desc">PayOS tạo mã QR — mở app ngân hàng quét để thanh toán</span>
                     </div>
                   </div>
                   <span class="payment-checkmark">✓</span>
@@ -358,11 +358,11 @@
     });
 
     function updateSubmitButtonLabel(paymentMethod) {
-      const label = paymentMethod === 'PayOS' ? 'Thanh toán PayOS' : 'Đặt hàng';
+      const label = paymentMethod === 'PayOS' ? 'Tạo mã QR thanh toán' : 'Đặt hàng';
       const submitBtn = document.getElementById('co-submit');
       const total = document.getElementById('co-submit-total')?.textContent || '0₫';
       if (submitBtn && !submitBtn.disabled) {
-        submitBtn.innerHTML = `<span class="btn-icon">${paymentMethod === 'PayOS' ? '💳' : '✨'}</span><span>${label} — <strong id="co-submit-total">${total}</strong></span>`;
+        submitBtn.innerHTML = `<span class="btn-icon">${paymentMethod === 'PayOS' ? '📱' : '✨'}</span><span>${label} — <strong id="co-submit-total">${total}</strong></span>`;
       }
     }
 
@@ -425,11 +425,25 @@
       });
 
       if (result.success) {
-        // PayOS: chuyển hướng đến trang thanh toán
-        if (paymentMethod === 'PayOS' && result.data && result.data.checkout_url) {
+        // PayOS: chuyển đến trang quét mã QR
+        if (paymentMethod === 'PayOS' && result.data && result.data.payos_order_code) {
           cart = [];
           saveCart();
-          window.location.href = result.data.checkout_url;
+
+          if (result.data.qr_code || result.data.checkout_url) {
+            sessionStorage.setItem('payos_qr_' + result.data.payos_order_code, JSON.stringify({
+              order_code: result.data.order_code,
+              payos_order_code: result.data.payos_order_code,
+              total_amount: totalAmount,
+              qr_code: result.data.qr_code,
+              checkout_url: result.data.checkout_url,
+              account_number: result.data.account_number,
+              account_name: result.data.account_name,
+              payment_status: 'pending'
+            }));
+          }
+
+          window.location.href = 'payment-qr.html?orderCode=' + result.data.payos_order_code;
           return;
         }
 

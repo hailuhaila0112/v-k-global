@@ -45,12 +45,23 @@ class Order {
         }
     }
 
-    public function updatePayosInfo($orderId, $payosOrderCode, $paymentLinkId) {
+    public function updatePayosInfo($orderId, $payosOrderCode, $paymentLinkId, $qrData = []) {
         if ($this->conn === null) return false;
-        $query = "UPDATE orders SET payos_order_code = :payos_order_code, payos_payment_link_id = :payment_link_id WHERE id = :id";
+        $query = "UPDATE orders SET
+                    payos_order_code = :payos_order_code,
+                    payos_payment_link_id = :payment_link_id,
+                    payos_qr_code = :qr_code,
+                    payos_checkout_url = :checkout_url,
+                    payos_account_number = :account_number,
+                    payos_account_name = :account_name
+                  WHERE id = :id";
         $stmt = $this->conn->prepare($query);
         $stmt->bindValue(':payos_order_code', $payosOrderCode, PDO::PARAM_INT);
-        $stmt->bindValue(':payment_link_id', $paymentLinkId);
+        $stmt->bindValue(':payment_link_id', $qrData['payment_link_id'] ?? $paymentLinkId);
+        $stmt->bindValue(':qr_code', $qrData['qr_code'] ?? null);
+        $stmt->bindValue(':checkout_url', $qrData['checkout_url'] ?? null);
+        $stmt->bindValue(':account_number', $qrData['account_number'] ?? null);
+        $stmt->bindValue(':account_name', $qrData['account_name'] ?? null);
         $stmt->bindValue(':id', $orderId, PDO::PARAM_INT);
         return $stmt->execute();
     }

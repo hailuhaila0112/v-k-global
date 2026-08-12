@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quét mã QR thanh toán - V.K Global Shop</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .qr-page {
+      min-height: calc(100vh - 160px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+    }
+    .qr-card {
+      max-width: 480px;
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 36px 32px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+    }
+    .qr-card h1 {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .qr-card .subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    .qr-box {
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      display: inline-block;
+      margin-bottom: 20px;
+    }
+    .qr-box canvas, .qr-box img {
+      display: block;
+      margin: 0 auto;
+    }
+    .qr-amount {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--brand);
+      margin-bottom: 16px;
+    }
+    .qr-info {
+      text-align: left;
+      background: var(--brand-light, rgba(59,130,246,0.08));
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      font-size: 13px;
+    }
+    .qr-info-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .qr-info-row:last-child { border-bottom: none; }
+    .qr-info-label { color: var(--muted); font-weight: 600; flex-shrink: 0; }
+    .qr-info-value { font-weight: 700; text-align: right; word-break: break-all; }
+    .qr-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      background: rgba(245,158,11,0.12);
+      color: #d97706;
+    }
+    .qr-status.paid {
+      background: rgba(34,197,94,0.12);
+      color: #16a34a;
+    }
+    .qr-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .qr-hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 16px;
+      line-height: 1.6;
+    }
+    .qr-loading {
+      width: 280px;
+      height: 280px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container nav-bar">
+      <a href="index.html" class="logo">⚡ V.K Global</a>
+      <nav class="nav-links">
+        <a href="index.html">Trang chủ</a>
+        <a href="account.html">Tài khoản</a>
+      </nav>
+      <div class="nav-actions">
+        <button id="dark-toggle" class="btn btn-secondary">🌙</button>
+        <div id="user-nav"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="qr-page">
+    <div class="qr-card">
+      <h1>Quét mã VietQR</h1>
+      <p class="subtitle">Mở app ngân hàng / ví điện tử và quét mã bên dưới</p>
+
+      <div id="qrStatus" class="qr-status">⏳ Đang chờ thanh toán</div>
+
+      <div class="qr-amount" id="qrAmount">—</div>
+
+      <div class="qr-box">
+        <div id="qrContainer" class="qr-loading">⏳ Đang tạo mã QR...</div>
+      </div>
+
+      <div class="qr-info" id="qrInfo">
+        <div class="qr-info-row">
+          <span class="qr-info-label">Mã đơn hàng</span>
+          <span class="qr-info-value" id="infoOrderCode">—</span>
+        </div>
+        <div class="qr-info-row">
+          <span class="qr-info-label">Chủ tài khoản</span>
+          <span class="qr-info-value" id="infoAccountName">—</span>
+        </div>
+        <div class="qr-info-row">
+          <span class="qr-info-label">Số tài khoản</span>
+          <span class="qr-info-value" id="infoAccountNumber">—</span>
+        </div>
+      </div>
+
+      <div class="qr-actions">
+        <button class="btn btn-primary" id="btnCheckPayment" onclick="checkPaymentNow()">✅ Tôi đã thanh toán</button>
+        <a href="#" id="btnCheckoutUrl" class="btn btn-secondary" target="_blank" style="display:none;">Mở trang PayOS</a>
+        <a href="account.html" class="btn btn-secondary">Xem đơn hàng</a>
+      </div>
+
+      <p class="qr-hint">
+        Hệ thống tự động kiểm tra thanh toán mỗi 3 giây.<br>
+        Sau khi chuyển khoản thành công, bạn sẽ được chuyển đến trang xác nhận.
+      </p>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>© 2025 V.K Global Shop. Bảo lưu mọi quyền.</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+  <script src="js/services.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    let payosOrderCode = null;
+    let pollTimer = null;
+
+    async function initQrPayment() {
+      const user = authService.getCurrentUser();
+      if (!user) {
+        showToast('🔒 Vui lòng đăng nhập');
+        setTimeout(() => window.location.href = 'account.html', 1500);
+        return;
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      payosOrderCode = params.get('orderCode');
+
+      if (!payosOrderCode) {
+        document.getElementById('qrContainer').innerHTML = '<span style="color:var(--signal)">❌ Không tìm thấy mã đơn hàng</span>';
+        return;
+      }
+
+      // Thử lấy từ sessionStorage trước (nhanh hơn)
+      const cached = sessionStorage.getItem('payos_qr_' + payosOrderCode);
+      if (cached) {
+        try {
+          renderQrPage(JSON.parse(cached));
+        } catch (e) {}
+      }
+
+      // Lấy từ API (đảm bảo có dữ liệu khi refresh trang)
+      const result = await orderService.getPayOSQrInfo(payosOrderCode);
+      if (result.success && result.data) {
+        sessionStorage.setItem('payos_qr_' + payosOrderCode, JSON.stringify(result.data));
+        renderQrPage(result.data);
+      } else if (!cached) {
+        document.getElementById('qrContainer').innerHTML =
+          '<span style="color:var(--signal)">❌ ' + (result.message || 'Không tải được mã QR') + '</span>';
+      }
+
+      startPolling();
+    }
+
+    function renderQrPage(data) {
+      document.getElementById('infoOrderCode').textContent = data.order_code || '—';
+      document.getElementById('infoAccountName').textContent = data.account_name || '—';
+      document.getElementById('infoAccountNumber').textContent = data.account_number || '—';
+      document.getElementById('qrAmount').textContent = formatCurrency(data.total_amount || 0);
+
+      if (data.payment_status === 'paid') {
+        showPaidState(data);
+        return;
+      }
+
+      const qrString = data.qr_code;
+      const container = document.getElementById('qrContainer');
+      container.innerHTML = '';
+
+      if (qrString && typeof QRCode !== 'undefined') {
+        QRCode.toCanvas(qrString, {
+          width: 260,
+          margin: 2,
+          color: { dark: '#000000', light: '#ffffff' }
+        }, function (err, canvas) {
+          if (err) {
+            container.innerHTML = '<span style="color:var(--signal)">❌ Không tạo được mã QR</span>';
+            return;
+          }
+          container.appendChild(canvas);
+        });
+      } else if (data.checkout_url) {
+        container.innerHTML = '<p style="color:var(--muted);padding:40px 20px;">Không có mã QR.<br>Dùng nút bên dưới để mở trang PayOS.</p>';
+      } else {
+        container.innerHTML = '<span style="color:var(--signal)">❌ PayOS chưa trả về mã QR</span>';
+      }
+
+      if (data.checkout_url) {
+        const btn = document.getElementById('btnCheckoutUrl');
+        btn.href = data.checkout_url;
+        btn.style.display = 'inline-flex';
+      }
+    }
+
+    function showPaidState(data) {
+      const statusEl = document.getElementById('qrStatus');
+      statusEl.textContent = '✅ Thanh toán thành công!';
+      statusEl.classList.add('paid');
+      document.getElementById('qrContainer').innerHTML = '<div style="font-size:64px;padding:60px 0;">🎉</div>';
+      stopPolling();
+      setTimeout(() => {
+        window.location.href = 'payment-success.html?orderCode=' + payosOrderCode;
+      }, 1500);
+    }
+
+    async function checkPaymentNow() {
+      if (!payosOrderCode) return;
+      const btn = document.getElementById('btnCheckPayment');
+      btn.disabled = true;
+      btn.textContent = '⏳ Đang kiểm tra...';
+
+      const result = await orderService.getPayOSStatus(payosOrderCode);
+      if (result.success && result.data && result.data.payment_status === 'paid') {
+        showPaidState(result.data);
+      } else {
+        showToast('⏳ Chưa nhận được thanh toán. Vui lòng thử lại sau vài giây.');
+        btn.disabled = false;
+        btn.textContent = '✅ Tôi đã thanh toán';
+      }
+    }
+
+    function startPolling() {
+      stopPolling();
+      pollTimer = setInterval(async () => {
+        if (!payosOrderCode) return;
+        const result = await orderService.getPayOSStatus(payosOrderCode);
+        if (result.success && result.data && result.data.payment_status === 'paid') {
+          showPaidState(result.data);
+        }
+      }, 3000);
+    }
+
+    function stopPolling() {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initQrPayment);
+    window.addEventListener('beforeunload', stopPolling);
+  </script>
+</body>
+</html>
