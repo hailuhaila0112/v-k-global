@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giỏ hàng - V.K Global Shop</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+  <header>
+    <div class="container nav-bar">
+      <a href="index.html" class="logo">⚡ V.K Global</a>
+      <nav class="nav-links">
+        <a href="index.html">Trang chủ</a>
+        <a href="index.html#projects-section">Dự án</a>
+        <a href="index.html#products-section">Linh kiện</a>
+        <a href="cart.html" class="active">Giỏ hàng (<span id="cart-badge">0</span>)</a>
+        <a href="account.html">Tài khoản</a>
+      </nav>
+      <div class="nav-actions">
+        <button id="dark-toggle" class="btn btn-secondary">🌙</button>
+        <div id="user-nav"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding: 60px 20px; max-width: 1000px;">
+    <div style="text-align: center; margin-bottom: 40px;">
+      <h1 style="font-size: 36px; font-weight: 800; margin-bottom: 8px;">Giỏ hàng của bạn</h1>
+      <p style="color: var(--muted); font-size: 15px;">Quản lý các thiết bị công nghệ bạn đã chọn trước khi thanh toán</p>
+    </div>
+
+    <!-- Shipping Progress Bar -->
+    <div id="shipping-progress-container" style="background: var(--panel); padding: 20px; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 30px; box-shadow: var(--shadow);">
+      <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 14px; margin-bottom: 10px;">
+        <span id="shipping-progress-text">Đang tính toán...</span>
+        <span id="shipping-progress-percent">0%</span>
+      </div>
+      <div style="background: var(--border); height: 8px; border-radius: 4px; overflow: hidden;">
+        <div id="shipping-progress-bar" style="background: var(--brand); height: 100%; width: 0%; transition: width 0.5s ease;"></div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr; gap: 30px;" id="cart-layout">
+      <div id="cart-container" class="card" style="padding: 30px; border-radius: var(--radius);">
+        <!-- Rendered dynamically by JS -->
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>© 2025 V.K Global Shop. Bảo lưu mọi quyền.</p>
+    </div>
+  </footer>
+
+  <script src="js/services.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    const FREE_SHIPPING_THRESHOLD = 15000000; // Miễn phí vận chuyển cho đơn hàng từ 15 triệu
+
+    async function renderCart() {
+      const container = document.getElementById("cart-container");
+      if (!container) return;
+
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 60px 0;">
+            <div style="font-size: 64px; margin-bottom: 20px;">🛒</div>
+            <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 10px;">Giỏ hàng trống</h3>
+            <p style="color: var(--muted); margin-bottom: 30px; font-size: 15px;">Bạn chưa thêm sản phẩm nào vào giỏ hàng.</p>
+            <a href="index.html" class="btn btn-primary" style="padding: 12px 28px;">Quay lại trang chủ</a>
+          </div>
+        `;
+        updateShippingProgress(0);
+        return;
+      }
+
+      let total = 0;
+      let html = '<div style="display: flex; flex-direction: column; gap: 24px;">';
+
+      // Fetch all products from API to match cart items
+      const productsList = await productService.getAll();
+
+      cart.forEach(item => {
+        const p = productsList.find(prod => prod.id === item.productId);
+        if (p) {
+          const subtotal = p.price * item.quantity;
+          total += subtotal;
+          html += `
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 20px; flex-wrap: wrap; gap: 20px;">
+              <div style="display: flex; align-items: center; gap: 20px; flex: 1; min-width: 250px;">
+                <img src="${p.image}" alt="${p.name}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 12px; box-shadow: var(--shadow);">
+                <div>
+                  <span style="font-size: 11px; color: var(--brand); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">${p.category}</span>
+                  <h3 style="font-size: 16px; font-weight: 800; margin: 4px 0 6px; line-height: 1.4;">${p.name}</h3>
+                  <p style="color: var(--brand); font-weight: 800; font-size: 15px;">${formatCurrency(p.price)}</p>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 24px; justify-content: space-between; width: 100%; max-width: 300px;">
+                <div style="display: flex; align-items: center; gap: 12px; background: var(--bg); padding: 6px 12px; border-radius: 10px; border: 1px solid var(--border);">
+                  <button class="btn" style="padding: 2px 8px; background: transparent; font-size: 16px; font-weight: bold;" onclick="changeQty('${p.id}', -1)">-</button>
+                  <span style="font-weight: 800; font-size: 15px; min-width: 20px; text-align: center;">${item.quantity}</span>
+                  <button class="btn" style="padding: 2px 8px; background: transparent; font-size: 16px; font-weight: bold;" onclick="changeQty('${p.id}', 1)">+</button>
+                </div>
+                <div style="text-align: right; min-width: 100px;">
+                  <div style="font-size: 16px; font-weight: 800; color: var(--ink);">${formatCurrency(subtotal)}</div>
+                  <button class="btn" style="color: var(--signal); background: transparent; padding: 4px 0; font-size: 13px; font-weight: 700; margin-top: 4px;" onclick="removeItem('${p.id}')">Xóa khỏi giỏ</button>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      });
+
+      html += `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 20px; border-top: 2px solid var(--border); flex-wrap: wrap; gap: 16px;">
+          <div>
+            <span style="font-size: 16px; font-weight: 700; color: var(--muted);">Tổng giá trị đơn hàng:</span>
+            <div style="font-size: 28px; font-weight: 800; color: var(--brand); margin-top: 4px;">${formatCurrency(total)}</div>
+          </div>
+          <div style="display: flex; gap: 12px;">
+            <a href="index.html" class="btn btn-secondary" style="padding: 14px 24px;">Tiếp tục mua sắm</a>
+            <button class="btn btn-primary" style="padding: 14px 28px;" onclick="checkout()">Thanh toán ngay</button>
+          </div>
+        </div>
+      </div>`;
+
+      container.innerHTML = html;
+      updateShippingProgress(total);
+    }
+
+    function updateShippingProgress(total) {
+      const text = document.getElementById("shipping-progress-text");
+      const bar = document.getElementById("shipping-progress-bar");
+      const percent = document.getElementById("shipping-progress-percent");
+      if (!text || !bar || !percent) return;
+
+      if (total >= FREE_SHIPPING_THRESHOLD) {
+        text.textContent = "🎉 Chúc mừng! Đơn hàng của bạn đã đủ điều kiện MIỄN PHÍ VẬN CHUYỂN!";
+        bar.style.width = "100%";
+        percent.textContent = "100%";
+      } else {
+        const remaining = FREE_SHIPPING_THRESHOLD - total;
+        const pct = Math.min(Math.round((total / FREE_SHIPPING_THRESHOLD) * 100), 100);
+        text.textContent = `Mua thêm ${formatCurrency(remaining)} để được MIỄN PHÍ VẬN CHUYỂN toàn quốc!`;
+        bar.style.width = `${pct}%`;
+        percent.textContent = `${pct}%`;
+      }
+    }
+
+    function changeQty(productId, delta) {
+      const item = cart.find(i => i.productId === productId);
+      if (item) {
+        item.quantity += delta;
+        if (item.quantity <= 0) {
+          cart = cart.filter(i => i.productId !== productId);
+        }
+        saveCart();
+        renderCart();
+      }
+    }
+
+    function removeItem(productId) {
+      cart = cart.filter(i => i.productId !== productId);
+      saveCart();
+      renderCart();
+      showToast("🗑️ Đã xóa sản phẩm khỏi giỏ hàng!");
+    }
+
+    function checkout() {
+      const user = authService.getCurrentUser();
+      if (!user) {
+        showToast("🔒 Vui lòng đăng nhập để tiến hành thanh toán!");
+        setTimeout(() => {
+          window.location.href = "account.html";
+        }, 1500);
+        return;
+      }
+      window.location.href = "checkout.html";
+    }
+
+    document.addEventListener("DOMContentLoaded", renderCart);
+  </script>
+</body>
+
+</html>

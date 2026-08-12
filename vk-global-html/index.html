@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>V.K Global Shop - Thiết bị xe golf tự hành & IoT</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- SwiperJS CSS CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+</head>
+<body>
+
+  <header>
+    <div class="container nav-bar">
+      <a href="index.html" class="logo">
+        ⚡ V.K Global
+      </a>
+      <nav class="nav-links">
+        <a href="index.html" class="active">Trang chủ</a>
+        <a href="#projects-section">Dự án</a>
+        <a href="#products-section">Linh kiện</a>
+        <a href="cart.html">Giỏ hàng (<span id="cart-badge">0</span>)</a>
+        <a href="account.html">Tài khoản</a>
+      </nav>
+      <div class="nav-actions">
+        <button id="dark-toggle" class="btn btn-secondary">🌙</button>
+        <div id="user-nav"></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section style="position: relative; padding: 120px 20px 100px; text-align: center; overflow: hidden; background: radial-gradient(circle at 50% 50%, var(--brand-light) 0%, transparent 70%);">
+      <!-- Glow Background Effects -->
+      <div style="position: absolute; top: 20%; left: 15%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(15,118,110,0.15) 0%, transparent 70%); filter: blur(40px); pointer-events: none; animation: floatGlow 8s ease-in-out infinite;"></div>
+      <div style="position: absolute; bottom: 10%; right: 15%; width: 350px; height: 300px; background: radial-gradient(circle, rgba(180,83,9,0.1) 0%, transparent 70%); filter: blur(50px); pointer-events: none; animation: floatGlow 12s ease-in-out infinite reverse;"></div>
+
+      <div class="container" style="position: relative; z-index: 2;">
+        <h1 style="font-size: 56px; font-weight: 800; margin-bottom: 20px; line-height: 1.2; background: linear-gradient(to right, var(--brand), var(--copper)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+          Giải Pháp Xe Golf Tự Hành & IoT
+        </h1>
+        <p style="font-size: 18px; color: var(--muted); max-width: 700px; margin: 0 auto 36px; line-height: 1.6;">
+          Nâng cấp xe golf truyền thống của bạn thành xe tự hành thông minh vượt trội với công nghệ LiDAR 3D, AI Camera nhận diện vật thể thời gian thực và động cơ bước chính xác cao.
+        </p>
+
+        <!-- Swiper Showcase Carousel -->
+        <div class="swiper hero-swiper" style="width: 100%; max-width: 1160px; margin: 0 auto 48px; padding: 20px 10px; overflow: hidden;">
+          <div class="swiper-wrapper" id="sliderWrapper">
+            <div class="swiper-slide">
+              <div class="showcase-card" style="display:flex;align-items:center;justify-content:center;">
+                <span style="color:var(--muted);font-size:14px;">⏳ Đang tải...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+          <a href="#products-section" class="btn btn-primary" style="font-size: 16px; padding: 14px 32px;">
+            Khám phá sản phẩm ngay
+          </a>
+          <button class="btn btn-secondary" style="font-size: 16px; padding: 14px 32px;" onclick="toggleChatbot()">
+            Tư vấn giải pháp AI
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Core Technology Platform Section -->
+    <section style="padding: 80px 20px; background: radial-gradient(circle at 50% 0%, var(--brand-light) 0%, transparent 60%); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); position: relative; overflow: hidden;">
+      <!-- Glow Background Effects -->
+      <div style="position: absolute; top: 10%; left: 50%; transform: translateX(-50%); width: 500px; height: 300px; background: radial-gradient(circle, rgba(15,118,110,0.08) 0%, transparent 70%); filter: blur(60px); pointer-events: none;"></div>
+
+      <div class="container" style="position: relative; z-index: 2;">
+        <div style="text-align: center; margin-bottom: 50px;">
+          <span style="background: var(--brand-light); color: var(--brand); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid var(--border);">
+            Core Technology
+          </span>
+          <h2 style="font-size: 36px; font-weight: 800; margin: 12px 0 8px;">Nền Tảng Công Nghệ Cốt Lõi</h2>
+          <p style="color: var(--muted); font-size: 16px; max-width: 600px; margin: 0 auto;">
+            Các công nghệ tiên tiến được V.K Global ứng dụng trong giải pháp xe golf tự hành, AI và IoT.
+          </p>
+        </div>
+
+        <div class="tech-grid">
+          <!-- Card 1 -->
+          <div class="tech-card">
+            <div class="tech-icon">🤖</div>
+            <h3>Trí Tuệ Nhân Tạo (AI)</h3>
+            <p>Ứng dụng Computer Vision và AI để nhận diện vật cản, làn đường và hỗ trợ điều hướng thông minh.</p>
+          </div>
+          <!-- Card 2 -->
+          <div class="tech-card">
+            <div class="tech-icon">📡</div>
+            <h3>LiDAR 3D</h3>
+            <p>Quét môi trường theo thời gian thực, xây dựng bản đồ 3D với độ chính xác cao.</p>
+          </div>
+          <!-- Card 3 -->
+          <div class="tech-card">
+            <div class="tech-icon">📷</div>
+            <h3>AI Camera</h3>
+            <p>Camera thông minh hỗ trợ phát hiện người, phương tiện và biển báo.</p>
+          </div>
+          <!-- Card 4 -->
+          <div class="tech-card">
+            <div class="tech-icon">🌐</div>
+            <h3>IoT Platform</h3>
+            <p>Giám sát, điều khiển và theo dõi trạng thái xe từ xa thông qua Internet.</p>
+          </div>
+          <!-- Card 5 -->
+          <div class="tech-card">
+            <div class="tech-icon">⚙️</div>
+            <h3>Embedded Systems</h3>
+            <p>Điều khiển trung tâm bằng Arduino, STM32 và Raspberry Pi với khả năng mở rộng linh hoạt.</p>
+          </div>
+          <!-- Card 6 -->
+          <div class="tech-card">
+            <div class="tech-icon">🚗</div>
+            <h3>Autonomous Golf Cart</h3>
+            <p>Giải pháp nâng cấp xe golf truyền thống thành xe tự hành ứng dụng AI và Robot.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects-section" class="container" style="padding: 80px 20px; border-bottom: 1px solid var(--border);">
+      <div style="text-align: center; margin-bottom: 50px;">
+        <span style="background: var(--brand-light); color: var(--brand); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Nghiên cứu & Phát triển</span>
+        <h2 style="font-size: 36px; font-weight: 800; margin: 12px 0 8px;">Dự Án Công Nghệ Tiêu Biểu</h2>
+        <p style="color: var(--muted); font-size: 16px; max-width: 600px; margin: 0 auto;">
+          Các giải pháp tự hành, robot thông minh và hệ thống nhúng IoT do V.K Global làm chủ công nghệ.
+        </p>
+      </div>
+      <div class="grid" id="featured-projects-grid">
+        <!-- Rendered dynamically by JS -->
+      </div>
+    </section>
+
+    <!-- Products Section -->
+    <section id="products-section" class="container" style="padding: 80px 20px;">
+      <div style="text-align: center; margin-bottom: 50px;">
+        <h2 style="font-size: 36px; font-weight: 800; margin-bottom: 12px;">Sản Phẩm Công Nghệ Nổi Bật</h2>
+        <p style="color: var(--muted); font-size: 16px; max-width: 600px; margin: 0 auto;">
+          Các thiết bị phần cứng cao cấp được nghiên cứu và phát triển đồng bộ cho hệ thống tự hành.
+        </p>
+      </div>
+      <div class="grid" id="featured-products">
+        <!-- Rendered dynamically by JS -->
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <h4 style="color: var(--brand); font-size: 20px; font-weight: 800; margin-bottom: 16px;">⚡ V.K Global</h4>
+          <p>Tiên phong trong lĩnh vực nghiên cứu và cung cấp giải pháp xe tự hành thông minh, IoT và robot công nghiệp tại Việt Nam.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Sản phẩm</h4>
+          <a href="#products-section">Bộ nâng cấp tự hành</a>
+          <a href="#products-section">Động cơ bước</a>
+          <a href="#products-section">Cảm biến LiDAR</a>
+          <a href="#products-section">Bộ điều khiển ECU</a>
+        </div>
+        <div class="footer-col">
+          <h4>Hỗ trợ</h4>
+          <a href="#">Tài liệu kỹ thuật</a>
+          <a href="#">Chính sách bảo hành</a>
+          <a href="#">Hướng dẫn lắp đặt</a>
+          <a href="#">Liên hệ kỹ sư</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2025 V.K Global Shop. Bảo lưu mọi quyền.</p>
+        <p>Hotline: 0987.654.321 | Email: support@vkglobal.vn</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/services.js"></script>
+  <script src="js/main.js"></script>
+  <!-- SwiperJS JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      // Load Sliders from API
+      const sliderWrapper = document.getElementById('sliderWrapper');
+      try {
+        const res = await fetch(`${API_BASE_URL}/sliders`);
+        const data = await res.json();
+        if (data.success && data.data && data.data.length > 0) {
+          sliderWrapper.innerHTML = data.data.map(s => `
+            <div class="swiper-slide">
+              <div class="showcase-card">
+                <img src="${s.image || 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80'}" alt="${s.title}" loading="lazy">
+                <div class="showcase-overlay"></div>
+                <div class="showcase-content">
+                  <div class="showcase-icon">${s.icon || '🚀'}</div>
+                  <h3>${s.title}</h3>
+                  <p>${s.description || ''}</p>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch(e) {
+        // fallback - keep loading placeholder
+      }
+
+      // Initialize Swiper Carousel
+      const sliderEl = document.querySelector('.hero-swiper');
+      const totalSlides = sliderEl ? sliderEl.querySelectorAll('.swiper-slide').length : 0;
+      new Swiper('.hero-swiper', {
+        slidesPerView: 1,
+        spaceBetween: 20,
+        loop: totalSlides >= 6,
+        speed: 6000,
+        autoplay: {
+          delay: 0,
+          disableOnInteraction: false,
+          pauseOnMouseEnter: true,
+        },
+        allowTouchMove: true,
+        freeMode: {
+          enabled: true,
+          momentum: false,
+        },
+        breakpoints: {
+          640: { slidesPerView: Math.min(2, totalSlides) },
+          1024: { slidesPerView: Math.min(3, totalSlides) },
+          1200: { slidesPerView: Math.min(4, totalSlides) },
+        }
+      });
+
+      // Render Projects
+      let allProjects = [];
+      const projectsGrid = document.getElementById("featured-projects-grid");
+      if (projectsGrid) {
+
+      const renderProjects = (projectList) => {
+          allProjects = projectList;
+          projectsGrid.innerHTML = projectList.map((p, idx) => `
+            <div class="card project-card" onclick="openProjectDetail(${idx})" style="cursor:pointer;">
+              <span class="badge">${p.category}</span>
+              <div class="card-img-wrapper">
+                <img src="${p.image || 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80'}" alt="${p.name}" class="card-img">
+              </div>
+              <div class="card-body">
+                <h3 class="card-title" style="font-size: 16px; margin-bottom: 10px;">${p.name}</h3>
+                <p style="font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.5; height: 60px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">
+                  ${p.description}
+                </p>
+                <div style="margin-bottom: 16px;">
+                  <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 6px;">
+                    <span>Tiến độ dự án</span>
+                    <span style="color: var(--brand);">${p.progress}</span>
+                  </div>
+                  <div style="background: var(--border); height: 6px; border-radius: 3px; overflow: hidden;">
+                    <div style="background: var(--brand); height: 100%; width: ${p.progress};"></div>
+                  </div>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px;">
+                  ${(p.technologies || []).map(t => `<span style="font-size: 11px; background: var(--bg); color: var(--muted); padding: 4px 8px; border-radius: 6px; font-weight: 700; border: 1px solid var(--border);">${t}</span>`).join("")}
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 700;">
+                  <span style="color: var(--limewire);">● ${p.status}</span>
+                </div>
+              </div>
+            </div>
+          `).join("");
+        };
+
+        // Fetch from API via projectService
+        projectService.getAll()
+          .then(data => {
+            renderProjects(data);
+          })
+          .catch(() => {
+            renderProjects([]);
+          });
+
+      }
+
+      // Render Products
+      const grid = document.getElementById("featured-products");
+      if (grid) {
+        const renderProducts = (productList) => {
+          cachedProducts = productList;
+          grid.innerHTML = productList.map(p => {
+            const cat = p.category_name || p.category || '';
+            const origPrice = p.original_price || p.originalPrice || 0;
+            const shortDesc = p.short_description || p.shortDescription || '';
+            const reviews = p.reviews_count || p.reviews || 0;
+            const discountPercent = origPrice ? Math.round(((origPrice - p.price) / origPrice) * 100) : 0;
+            return `
+              <div class="card">
+                ${discountPercent > 0 ? `<span class="badge badge-discount">-${discountPercent}%</span>` : ""}
+                <span class="badge">${cat}</span>
+                <div class="card-img-wrapper">
+                  <img src="${p.image}" alt="${p.name}" class="card-img" loading="lazy">
+                </div>
+                <div class="card-body">
+                  <h3 class="card-title">${p.name}</h3>
+                  <p style="font-size: 14px; color: var(--muted); margin-bottom: 16px; line-clamp: 2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 40px; line-height: 1.4;">
+                    ${shortDesc}
+                  </p>
+                  <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 16px;">
+                    <span style="color: #fbbf24; font-size: 14px;">⭐⭐⭐⭐⭐</span>
+                    <span style="font-size: 12px; color: var(--muted); font-weight: 600; margin-left: 4px;">(${reviews} đánh giá)</span>
+                  </div>
+                  <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
+                    <div>
+                      <div class="card-price">${formatCurrency(p.price)}</div>
+                      ${origPrice ? `<div class="card-original-price" style="margin-left: 0; margin-top: 2px;">${formatCurrency(origPrice)}</div>` : ""}
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                      <button class="btn btn-secondary" style="padding: 8px 12px;" onclick="openQuickView('${p.id}')">Chi tiết</button>
+                      <button class="btn btn-primary" style="padding: 8px 16px;" onclick="addToCart('${p.id}')">Mua</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join("");
+        };
+
+        productService.getAll()
+          .then(data => renderProducts(data))
+          .catch(() => renderProducts([]));
+      }
+
+      // Project Detail Modal
+      window.openProjectDetail = function(idx) {
+        const p = allProjects[idx];
+        if (!p) return;
+        const techs = p.technologies || [];
+
+        document.getElementById('pdImage').src = p.image || 'https://via.placeholder.com/600x400/0c1222/14b8a6?text=Project';
+        document.getElementById('pdCategory').textContent = p.category || '';
+        document.getElementById('pdName').textContent = p.name;
+        document.getElementById('pdDescription').textContent = p.description || '';
+        document.getElementById('pdProgress').textContent = p.progress || '0%';
+        document.getElementById('pdProgressBar').style.width = p.progress || '0%';
+        document.getElementById('pdStatus').textContent = p.status || '';
+        document.getElementById('pdStatusDot').style.background = p.status === 'Đang thử nghiệm' ? '#06b6d4' : p.status === 'Hoàn thành' ? '#10b981' : '#3b82f6';
+        document.getElementById('pdTechList').innerHTML = techs.map(t =>
+          `<span class="pd-tech-tag">${t}</span>`
+        ).join('') || '<span style="color:var(--muted);font-size:13px;">Chưa có thông tin</span>';
+
+        document.getElementById('projectDetailModal').classList.add('active');
+      };
+
+      window.closeProjectDetail = function() {
+        document.getElementById('projectDetailModal').classList.remove('active');
+      };
+    });
+  </script>
+
+  <!-- Project Detail Modal -->
+  <div class="modal" id="projectDetailModal">
+    <div class="modal-content pd-modal">
+      <button class="modal-close" onclick="closeProjectDetail()">✕</button>
+      <div class="pd-layout">
+        <div class="pd-image-wrap">
+          <img id="pdImage" src="" alt="" class="pd-image">
+          <span class="pd-badge" id="pdCategory"></span>
+        </div>
+        <div class="pd-info">
+          <h2 class="pd-title" id="pdName">——</h2>
+          <p class="pd-desc" id="pdDescription"></p>
+
+          <div class="pd-progress-section">
+            <div class="pd-progress-header">
+              <span class="pd-progress-label">Tiến độ dự án</span>
+              <span class="pd-progress-value" id="pdProgress">0%</span>
+            </div>
+            <div class="pd-progress-track">
+              <div class="pd-progress-bar" id="pdProgressBar"></div>
+            </div>
+          </div>
+
+          <div class="pd-status-row">
+            <span class="pd-status-dot" id="pdStatusDot"></span>
+            <span id="pdStatus">——</span>
+          </div>
+
+          <div class="pd-tech-section">
+            <h4 class="pd-tech-title">Công nghệ sử dụng</h4>
+            <div class="pd-tech-list" id="pdTechList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

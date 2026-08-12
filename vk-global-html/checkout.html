@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thanh toán - V.K Global Shop</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header>
+    <div class="container nav-bar">
+      <a href="index.html" class="logo">⚡ V.K Global</a>
+      <nav class="nav-links">
+        <a href="index.html">Trang chủ</a>
+        <a href="index.html#projects-section">Dự án</a>
+        <a href="index.html#products-section">Linh kiện</a>
+        <a href="cart.html">Giỏ hàng (<span id="cart-badge">0</span>)</a>
+        <a href="account.html">Tài khoản</a>
+      </nav>
+      <div class="nav-actions">
+        <button id="dark-toggle" class="btn btn-secondary">🌙</button>
+        <div id="user-nav"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="checkout-page">
+    <div class="checkout-header">
+      <a href="cart.html" class="checkout-back">← Quay lại giỏ hàng</a>
+      <h1 class="checkout-title">Thanh toán</h1>
+      <p class="checkout-subtitle">Hoàn tất đơn hàng của bạn</p>
+    </div>
+
+    <div class="checkout-layout">
+      <!-- LEFT: Form -->
+      <div class="checkout-form">
+
+        <!-- Shipping Info -->
+        <div class="checkout-section">
+          <div class="checkout-section-header">
+            <span class="checkout-section-icon">📦</span>
+            <div>
+              <h3>Thông tin giao hàng</h3>
+              <p>Nhập địa chỉ nhận hàng</p>
+            </div>
+          </div>
+          <div class="checkout-section-body">
+            <div class="checkout-field-row">
+              <div class="checkout-field">
+                <label class="checkout-label">Họ và tên <span class="required">*</span></label>
+                <input class="checkout-input" id="co-name" placeholder="Nguyễn Văn A" autocomplete="name">
+              </div>
+              <div class="checkout-field">
+                <label class="checkout-label">Số điện thoại <span class="required">*</span></label>
+                <input class="checkout-input" id="co-phone" type="tel" placeholder="0912 345 678" autocomplete="tel">
+              </div>
+            </div>
+            <div class="checkout-field">
+              <label class="checkout-label">Email <span class="required">*</span></label>
+              <input class="checkout-input" id="co-email" type="email" placeholder="email@example.com" autocomplete="email">
+            </div>
+            <div class="checkout-field">
+              <label class="checkout-label">Địa chỉ <span class="required">*</span></label>
+              <textarea class="checkout-input checkout-textarea" id="co-address" rows="2" placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố" autocomplete="street-address"></textarea>
+            </div>
+            <div class="checkout-field-row">
+              <div class="checkout-field">
+                <label class="checkout-label">Thành phố <span class="required">*</span></label>
+                <input class="checkout-input" id="co-city" placeholder="Hồ Chí Minh" autocomplete="address-level2">
+              </div>
+              <div class="checkout-field">
+                <label class="checkout-label">Ghi chú</label>
+                <input class="checkout-input" id="co-note" placeholder="Ghi chú giao hàng (không bắt buộc)">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="checkout-section">
+          <div class="checkout-section-header">
+            <span class="checkout-section-icon">💳</span>
+            <div>
+              <h3>Phương thức thanh toán</h3>
+              <p>Chọn cách bạn muốn thanh toán</p>
+            </div>
+          </div>
+          <div class="checkout-section-body">
+            <div class="payment-methods" id="paymentMethods">
+              <label class="payment-method">
+                <input type="radio" name="payment" value="COD" checked>
+                <div class="payment-method-content">
+                  <div class="payment-method-left">
+                    <span class="payment-method-icon">💵</span>
+                    <div>
+                      <strong>Thanh toán khi nhận hàng (COD)</strong>
+                      <span class="payment-method-desc">Thanh toán bằng tiền mặt khi nhận hàng</span>
+                    </div>
+                  </div>
+                  <span class="payment-checkmark">✓</span>
+                </div>
+              </label>
+              <label class="payment-method">
+                <input type="radio" name="payment" value="Bank Transfer">
+                <div class="payment-method-content">
+                  <div class="payment-method-left">
+                    <span class="payment-method-icon">🏦</span>
+                    <div>
+                      <strong>Chuyển khoản ngân hàng</strong>
+                      <span class="payment-method-desc">Chuyển khoản qua tài khoản ngân hàng</span>
+                    </div>
+                  </div>
+                  <span class="payment-checkmark">✓</span>
+                </div>
+              </label>
+              <label class="payment-method">
+                <input type="radio" name="payment" value="Momo">
+                <div class="payment-method-content">
+                  <div class="payment-method-left">
+                    <span class="payment-method-icon">📱</span>
+                    <div>
+                      <strong>Ví MoMo</strong>
+                      <span class="payment-method-desc">Thanh toán qua ứng dụng MoMo</span>
+                    </div>
+                  </div>
+                  <span class="payment-checkmark">✓</span>
+                </div>
+              </label>
+            </div>
+
+            <!-- Bank transfer info (shown when selected) -->
+            <div class="bank-info" id="bankInfo">
+              <div class="bank-info-header">Thông tin chuyển khoản</div>
+              <div class="bank-info-row">
+                <span class="bank-info-label">Ngân hàng</span>
+                <span class="bank-info-value">Vietcombank</span>
+              </div>
+              <div class="bank-info-row">
+                <span class="bank-info-label">Chủ tài khoản</span>
+                <span class="bank-info-value">CÔNG TY V.K GLOBAL</span>
+              </div>
+              <div class="bank-info-row">
+                <span class="bank-info-label">Số tài khoản</span>
+                <span class="bank-info-value">0123 456 789</span>
+              </div>
+              <div class="bank-info-row">
+                <span class="bank-info-label">Nội dung</span>
+                <span class="bank-info-value">Mã đơn hàng (tự động)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review Items -->
+        <div class="checkout-section">
+          <div class="checkout-section-header">
+            <span class="checkout-section-icon">🛒</span>
+            <div>
+              <h3>Kiểm tra đơn hàng</h3>
+              <p><span id="co-item-count">0</span> sản phẩm trong giỏ hàng</p>
+            </div>
+          </div>
+          <div class="checkout-section-body" id="co-items-list">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Place order button (mobile) -->
+        <button class="btn btn-primary checkout-submit-mobile" id="co-submit-mobile" onclick="placeOrder()">
+          <span>Đặt hàng</span>
+          <span id="co-total-mobile">0₫</span>
+        </button>
+      </div>
+
+      <!-- RIGHT: Summary Sidebar -->
+      <div class="checkout-summary" id="checkoutSummary">
+        <div class="checkout-summary-sticky">
+          <div class="checkout-summary-header">
+            <h3>Đơn hàng</h3>
+            <span class="checkout-summary-count" id="co-summary-count">0</span>
+          </div>
+
+          <div class="checkout-summary-items" id="co-summary-items">
+            <!-- Rendered by JS -->
+          </div>
+
+          <div class="checkout-summary-totals">
+            <div class="checkout-summary-row">
+              <span>Tạm tính</span>
+              <span id="co-subtotal">0₫</span>
+            </div>
+            <div class="checkout-summary-row">
+              <span>Phí vận chuyển</span>
+              <span id="co-shipping">—</span>
+            </div>
+            <div class="checkout-summary-row checkout-summary-row-discount" id="co-discount-row">
+              <span>Giảm giá</span>
+              <span id="co-discount">0₫</span>
+            </div>
+            <div class="checkout-summary-divider"></div>
+            <div class="checkout-summary-row checkout-summary-row-total">
+              <span>Tổng cộng</span>
+              <span id="co-total">0₫</span>
+            </div>
+          </div>
+
+          <div class="checkout-summary-extra">
+            <div class="checkout-extra-item">🚚 Miễn phí vận chuyển cho đơn hàng từ 15.000.000₫</div>
+            <div class="checkout-extra-item">🔒 Thông tin thanh toán được bảo mật</div>
+            <div class="checkout-extra-item">📦 Giao hàng toàn quốc từ 3-7 ngày</div>
+          </div>
+
+          <button class="btn btn-primary checkout-submit" id="co-submit" onclick="placeOrder()">
+            <span class="btn-icon">✨</span>
+            <span>Đặt hàng — <strong id="co-submit-total">0₫</strong></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Success Modal -->
+  <div class="modal" id="orderSuccessModal">
+    <div class="modal-content" style="max-width: 480px; text-align: center; padding: 48px 40px;">
+      <div style="font-size: 72px; margin-bottom: 20px;">🎉</div>
+      <h3 style="font-size: 24px; font-weight: 800; margin-bottom: 8px;">Đặt hàng thành công!</h3>
+      <p style="color: var(--muted); font-size: 15px; margin-bottom: 6px;">Cảm ơn bạn đã đặt hàng tại V.K Global.</p>
+      <p style="color: var(--muted); font-size: 14px;">Mã đơn hàng: <strong id="orderCodeDisplay" style="color: var(--brand);">——</strong></p>
+      <p style="color: var(--muted); font-size: 13px; margin-bottom: 28px;">Chúng tôi sẽ liên hệ xác nhận đơn hàng trong thời gian sớm nhất.</p>
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <a href="index.html" class="btn btn-primary" style="padding: 12px 28px;">Về trang chủ</a>
+        <a href="account.html" class="btn btn-secondary" style="padding: 12px 28px;">Xem đơn hàng</a>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>© 2025 V.K Global Shop. Bảo lưu mọi quyền.</p>
+    </div>
+  </footer>
+
+  <script src="js/services.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    const FREE_SHIPPING_THRESHOLD = 15000000;
+
+    let checkoutCart = [];
+    let checkoutProducts = [];
+    let checkoutTotal = 0;
+
+    async function initCheckout() {
+      const user = authService.getCurrentUser();
+      if (!user) {
+        showToast('🔒 Vui lòng đăng nhập để thanh toán');
+        setTimeout(() => window.location.href = 'account.html', 1500);
+        return;
+      }
+
+      // Pre-fill user info
+      document.getElementById('co-name').value = user.name || '';
+      document.getElementById('co-email').value = user.email || '';
+
+      checkoutCart = cartService.getCart();
+      if (checkoutCart.length === 0) {
+        showToast('🛒 Giỏ hàng trống');
+        setTimeout(() => window.location.href = 'cart.html', 1500);
+        return;
+      }
+
+      checkoutProducts = await productService.getAll();
+      renderCheckout();
+    }
+
+    function renderCheckout() {
+      let subtotal = 0;
+      const itemsHtml = [];
+      const summaryHtml = [];
+
+      checkoutCart.forEach(item => {
+        const p = checkoutProducts.find(prod => prod.id == item.productId);
+        if (!p) return;
+        const lineTotal = p.price * item.quantity;
+        subtotal += lineTotal;
+
+        // Items list (left)
+        itemsHtml.push(`
+          <div class="co-item">
+            <img src="${p.image || 'https://via.placeholder.com/60'}" alt="${p.name}" class="co-item-img">
+            <div class="co-item-info">
+              <div class="co-item-name">${p.name}</div>
+              <div class="co-item-meta">SL: ${item.quantity} × ${formatCurrency(p.price)}</div>
+            </div>
+            <div class="co-item-total">${formatCurrency(lineTotal)}</div>
+          </div>
+        `);
+
+        // Summary items (right)
+        summaryHtml.push(`
+          <div class="co-summary-item">
+            <img src="${p.image || 'https://via.placeholder.com/40'}" alt="">
+            <div class="co-summary-item-info">
+              <div class="co-summary-item-name">${p.name}</div>
+              <div class="co-summary-item-qty">x${item.quantity}</div>
+            </div>
+            <div class="co-summary-item-price">${formatCurrency(lineTotal)}</div>
+          </div>
+        `);
+      });
+
+      checkoutTotal = subtotal;
+
+      document.getElementById('co-item-count').textContent = checkoutCart.length;
+      document.getElementById('co-items-list').innerHTML = itemsHtml.join('');
+      document.getElementById('co-summary-items').innerHTML = summaryHtml.join('');
+      document.getElementById('co-summary-count').textContent = checkoutCart.length;
+
+      const freeShip = subtotal >= FREE_SHIPPING_THRESHOLD;
+      document.getElementById('co-subtotal').textContent = formatCurrency(subtotal);
+      document.getElementById('co-shipping').textContent = freeShip ? 'Miễn phí' : formatCurrency(30000);
+      document.getElementById('co-total').textContent = formatCurrency(subtotal + (freeShip ? 0 : 30000));
+
+      document.getElementById('co-total-mobile').textContent = formatCurrency(subtotal + (freeShip ? 0 : 30000));
+      document.getElementById('co-submit-total').textContent = formatCurrency(subtotal + (freeShip ? 0 : 30000));
+
+      // Show discount row only if there's original_price product
+      const hasDiscount = checkoutCart.some(item => {
+        const p = checkoutProducts.find(prod => prod.id == item.productId);
+        return p && p.original_price && p.original_price > p.price;
+      });
+      document.getElementById('co-discount-row').style.display = hasDiscount ? 'flex' : 'none';
+    }
+
+    // Payment method toggle
+    document.querySelectorAll('input[name="payment"]').forEach(radio => {
+      radio.addEventListener('change', function () {
+        document.getElementById('bankInfo').classList.toggle('visible', this.value === 'Bank Transfer');
+      });
+    });
+
+    async function placeOrder() {
+      const submitBtn = document.getElementById('co-submit');
+      const submitMobile = document.getElementById('co-submit-mobile');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '⏳ Đang xử lý...';
+      submitMobile.disabled = true;
+      submitMobile.innerHTML = '⏳ Đang xử lý...';
+
+      // Validate
+      const name = document.getElementById('co-name').value.trim();
+      const phone = document.getElementById('co-phone').value.trim();
+      const email = document.getElementById('co-email').value.trim();
+      const address = document.getElementById('co-address').value.trim();
+      const city = document.getElementById('co-city').value.trim();
+
+      if (!name || !phone || !email || !address || !city) {
+        showToast('❌ Vui lòng nhập đầy đủ thông tin giao hàng');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span class="btn-icon">✨</span><span>Đặt hàng — <strong id="co-submit-total">0₫</strong></span>';
+        submitMobile.disabled = false;
+        submitMobile.innerHTML = '<span>Đặt hàng</span><span id="co-total-mobile">0₫</span>';
+        // Highlight empty fields
+        document.querySelectorAll('.checkout-input').forEach(el => {
+          if (!el.value.trim() && el.id !== 'co-note') {
+            el.style.borderColor = 'var(--signal)';
+            el.style.boxShadow = '0 0 0 3px rgba(220,38,38,0.1)';
+          } else {
+            el.style.borderColor = '';
+            el.style.boxShadow = '';
+          }
+        });
+        return;
+      }
+
+      const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+      const fullAddress = `${address}, ${city}`;
+      const note = document.getElementById('co-note').value.trim();
+
+      const items = checkoutCart.map(item => {
+        const p = checkoutProducts.find(prod => prod.id == item.productId);
+        return {
+          product_id: item.productId,
+          quantity: item.quantity,
+          price: p ? p.price : 0
+        };
+      });
+
+      const freeShip = checkoutTotal >= FREE_SHIPPING_THRESHOLD;
+      const shippingFee = freeShip ? 0 : 30000;
+      const totalAmount = checkoutTotal + shippingFee;
+
+      const result = await orderService.createOrder({
+        total_amount: totalAmount,
+        payment_method: paymentMethod,
+        shipping_address: `${name} - ${phone} - ${fullAddress}${note ? ' (' + note + ')' : ''}`,
+        items: items
+      });
+
+      if (result.success) {
+        // Clear cart
+        cart = [];
+        saveCart();
+
+        // Show success modal
+        document.getElementById('orderCodeDisplay').textContent = result.data.order_code || result.data.order_id;
+        document.getElementById('orderSuccessModal').classList.add('active');
+
+        submitBtn.innerHTML = '✅ Hoàn tất';
+        submitMobile.innerHTML = '✅ Hoàn tất';
+      } else {
+        showToast('❌ ' + (result.message || 'Đặt hàng thất bại'));
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span class="btn-icon">✨</span><span>Đặt hàng — <strong id="co-submit-total">0₫</strong></span>';
+        submitMobile.disabled = false;
+        submitMobile.innerHTML = '<span>Đặt hàng</span><span id="co-total-mobile">0₫</span>';
+      }
+    }
+
+    // Mobile summary toggle
+    document.querySelector('.checkout-summary-header')?.addEventListener('click', function () {
+      if (window.innerWidth <= 900) {
+        document.querySelector('.checkout-summary-sticky').classList.toggle('expanded');
+      }
+    });
+
+    // Update submit total reference after render
+    function updateSubmitTotal(val) {
+      const el = document.getElementById('co-submit-total');
+      if (el) el.textContent = val;
+    }
+
+    document.addEventListener('DOMContentLoaded', initCheckout);
+  </script>
+</body>
+</html>

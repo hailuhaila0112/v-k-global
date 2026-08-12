@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - V.K Global</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="admin-sidebar" id="adminSidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="sidebar-logo">⚡ V.K Global</a>
+        <span class="sidebar-role">Admin Panel</span>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Tổng quan</div>
+        <a href="#" class="nav-item active" data-page="dashboard">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Dashboard</span>
+        </a>
+        <div class="nav-section-label">Quản lý</div>
+        <a href="#" class="nav-item" data-page="orders">
+          <span class="nav-icon">📦</span>
+          <span class="nav-label">Đơn hàng</span>
+        </a>
+        <a href="#" class="nav-item" data-page="sliders">
+          <span class="nav-icon">🎠</span>
+          <span class="nav-label">Slider</span>
+        </a>
+        <a href="#" class="nav-item" data-page="projects">
+          <span class="nav-icon">🚀</span>
+          <span class="nav-label">Dự án</span>
+        </a>
+        <a href="#" class="nav-item" data-page="products">
+          <span class="nav-icon">🛒</span>
+          <span class="nav-label">Sản phẩm</span>
+        </a>
+        <a href="#" class="nav-item" data-page="users">
+          <span class="nav-icon">👥</span>
+          <span class="nav-label">Người dùng</span>
+        </a>
+        <a href="#" class="nav-item" data-page="messages">
+          <span class="nav-icon">💬</span>
+          <span class="nav-label">Liên hệ</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="index.html" class="nav-item" id="backToSite">
+          <span class="nav-icon">←</span>
+          <span class="nav-label">Về trang chủ</span>
+        </a>
+        <a href="#" class="nav-item" id="adminLogout">
+          <span class="nav-icon">🚪</span>
+          <span class="nav-label">Đăng xuất</span>
+        </a>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+        <div class="topbar-title" id="pageTitle">Dashboard</div>
+        <div class="topbar-right">
+          <div class="admin-user" id="adminUserInfo">
+            <div class="admin-avatar" id="adminAvatar">A</div>
+            <div class="admin-user-details">
+              <span class="admin-name" id="adminName">Admin</span>
+              <span class="admin-email" id="adminEmail">admin@vkglobal.com</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="admin-content" id="adminContent">
+        <!-- Dashboard Page -->
+        <div class="page active" id="page-dashboard">
+          <div class="section-header">
+            <div>
+              <h2>Dashboard</h2>
+              <p>Tổng quan cửa hàng</p>
+            </div>
+          </div>
+          <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+              <div class="stat-icon stat-icon-users">👥</div>
+              <div class="stat-info">
+                <span class="stat-value" id="statUsers">0</span>
+                <span class="stat-label">Người dùng</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon stat-icon-orders">📦</div>
+              <div class="stat-info">
+                <span class="stat-value" id="statOrders">0</span>
+                <span class="stat-label">Đơn hàng</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon stat-icon-revenue">💰</div>
+              <div class="stat-info">
+                <span class="stat-value" id="statRevenue">0₫</span>
+                <span class="stat-label">Doanh thu</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon stat-icon-products">🛒</div>
+              <div class="stat-info">
+                <span class="stat-value" id="statProducts">0</span>
+                <span class="stat-label">Sản phẩm</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon stat-icon-projects">🚀</div>
+              <div class="stat-info">
+                <span class="stat-value" id="statProjects">0</span>
+                <span class="stat-label">Dự án</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon stat-icon-contacts">💬</div>
+              <div class="stat-info">
+                <span class="stat-value" id="statContacts">0</span>
+                <span class="stat-label">Liên hệ</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-header">
+            <div>
+              <h2>Đơn hàng gần đây</h2>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table" id="recentOrdersTable">
+              <thead>
+                <tr>
+                  <th>Mã đơn</th>
+                  <th>Khách hàng</th>
+                  <th>Tổng tiền</th>
+                  <th>Thanh toán</th>
+                  <th>Trạng thái</th>
+                  <th>Ngày</th>
+                </tr>
+              </thead>
+              <tbody id="recentOrdersBody">
+                <tr><td colspan="6" class="table-empty">⏳ Đang tải...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Orders Page -->
+        <div class="page" id="page-orders">
+          <div class="section-header">
+            <div>
+              <h2>Quản lý đơn hàng</h2>
+              <p>Theo dõi và cập nhật trạng thái đơn hàng</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-secondary" onclick="loadOrders()">🔄</button>
+            </div>
+          </div>
+
+          <!-- Order Stats -->
+          <div class="or-stats" id="orStats">
+            <div class="or-stat-card">
+              <span class="or-stat-icon" style="background:#dbeafe;">📦</span>
+              <div class="or-stat-info">
+                <span class="or-stat-value" id="orStatTotal">0</span>
+                <span class="or-stat-label">Tổng đơn hàng</span>
+              </div>
+            </div>
+            <div class="or-stat-card">
+              <span class="or-stat-icon" style="background:#fef3c7;">🕐</span>
+              <div class="or-stat-info">
+                <span class="or-stat-value" id="orStatPending">0</span>
+                <span class="or-stat-label">Chờ xác nhận</span>
+              </div>
+            </div>
+            <div class="or-stat-card">
+              <span class="or-stat-icon" style="background:#e0f2fe;">🔄</span>
+              <div class="or-stat-info">
+                <span class="or-stat-value" id="orStatProcessing">0</span>
+                <span class="or-stat-label">Đang xử lý</span>
+              </div>
+            </div>
+            <div class="or-stat-card">
+              <span class="or-stat-icon" style="background:#cffafe;">🚚</span>
+              <div class="or-stat-info">
+                <span class="or-stat-value" id="orStatShipping">0</span>
+                <span class="or-stat-label">Đang giao</span>
+              </div>
+            </div>
+            <div class="or-stat-card">
+              <span class="or-stat-icon" style="background:#d1fae5;">✅</span>
+              <div class="or-stat-info">
+                <span class="or-stat-value" id="orStatDelivered">0</span>
+                <span class="or-stat-label">Đã giao</span>
+              </div>
+            </div>
+            <div class="or-stat-card">
+              <span class="or-stat-icon" style="background:#fee2e2;">❌</span>
+              <div class="or-stat-info">
+                <span class="or-stat-value" id="orStatCancelled">0</span>
+                <span class="or-stat-label">Đã hủy</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Order Grid -->
+          <div class="or-grid" id="orGrid">
+            <div class="or-empty">
+              <span class="or-empty-icon">📦</span>
+              <h3>Chưa có đơn hàng nào</h3>
+              <p>Đơn hàng từ khách hàng sẽ hiển thị ở đây</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sliders Page -->
+        <div class="page" id="page-sliders">
+          <div class="section-header">
+            <div>
+              <h2>Bảng điều khiển Slider</h2>
+              <p>Quản lý các slide hiển thị trên trang chủ</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-secondary" id="syncSlidersBtn">🔄</button>
+              <button class="btn btn-primary" onclick="openSliderModal()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right:4px;"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                Thêm slide
+              </button>
+            </div>
+          </div>
+
+          <!-- Slider Stats -->
+          <div class="slider-stats" id="sliderStats">
+            <div class="slider-stat-card">
+              <span class="slider-stat-icon">🎠</span>
+              <div class="slider-stat-info">
+                <span class="slider-stat-value" id="slStatTotal">0</span>
+                <span class="slider-stat-label">Tổng số slide</span>
+              </div>
+            </div>
+            <div class="slider-stat-card">
+              <span class="slider-stat-icon" style="background:#d1fae5;">✅</span>
+              <div class="slider-stat-info">
+                <span class="slider-stat-value" id="slStatActive">0</span>
+                <span class="slider-stat-label">Đang hiển thị</span>
+              </div>
+            </div>
+            <div class="slider-stat-card">
+              <span class="slider-stat-icon" style="background:#fee2e2;">👁️</span>
+              <div class="slider-stat-info">
+                <span class="slider-stat-value" id="slStatHidden">0</span>
+                <span class="slider-stat-label">Đang ẩn</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Slider Carousel Editor -->
+          <div class="slider-designer">
+            <div class="slider-designer-header">
+              <span class="slider-designer-title">🎯 Kéo thả để sắp xếp</span>
+              <span class="slider-designer-hint">Click vào slide để chỉnh sửa</span>
+            </div>
+            <div class="slider-designer-grid" id="sliderGrid">
+              <div class="slider-designer-empty">
+                <span class="slider-designer-empty-icon">🎠</span>
+                <h3>Chưa có slide nào</h3>
+                <p>Nhấn "Thêm slide" để bắt đầu</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Projects Page -->
+        <div class="page" id="page-projects">
+          <div class="section-header">
+            <div>
+              <h2>Dự án công nghệ</h2>
+              <p>Quản lý các dự án nghiên cứu & phát triển</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-secondary" id="syncProjectsBtn">🔄</button>
+              <button class="btn btn-primary" onclick="openProjectModal()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right:4px;"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                Thêm dự án
+              </button>
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="pj-stats">
+            <div class="pj-stat-card">
+              <span class="pj-stat-icon" style="background:#e0f2fe;">🚀</span>
+              <div class="pj-stat-info">
+                <span class="pj-stat-value" id="pjStatTotal">0</span>
+                <span class="pj-stat-label">Tổng dự án</span>
+              </div>
+            </div>
+            <div class="pj-stat-card">
+              <span class="pj-stat-icon" style="background:#dbeafe;">🔧</span>
+              <div class="pj-stat-info">
+                <span class="pj-stat-value" id="pjStatDev">0</span>
+                <span class="pj-stat-label">Đang phát triển</span>
+              </div>
+            </div>
+            <div class="pj-stat-card">
+              <span class="pj-stat-icon" style="background:#e0f2fe;">🧪</span>
+              <div class="pj-stat-info">
+                <span class="pj-stat-value" id="pjStatTest">0</span>
+                <span class="pj-stat-label">Đang thử nghiệm</span>
+              </div>
+            </div>
+            <div class="pj-stat-card">
+              <span class="pj-stat-icon" style="background:#d1fae5;">✅</span>
+              <div class="pj-stat-info">
+                <span class="pj-stat-value" id="pjStatDone">0</span>
+                <span class="pj-stat-label">Hoàn thành</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project Grid -->
+          <div class="pj-grid" id="pjGrid">
+            <div class="pj-empty">
+              <span class="pj-empty-icon">🚀</span>
+              <h3>Chưa có dự án nào</h3>
+              <p>Nhấn "Thêm dự án" để bắt đầu</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Products Page -->
+        <div class="page" id="page-products">
+          <div class="section-header">
+            <div>
+              <h2>Quản lý sản phẩm</h2>
+              <p>Danh sách sản phẩm trong cửa hàng</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-secondary" id="syncProductsBtn">🔄</button>
+              <button class="btn btn-primary" onclick="openProductModal()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right:4px;"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                Thêm sản phẩm
+              </button>
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="pr-stats">
+            <div class="pr-stat-card">
+              <span class="pr-stat-icon" style="background:#dbeafe;">🛒</span>
+              <div class="pr-stat-info">
+                <span class="pr-stat-value" id="prStatTotal">0</span>
+                <span class="pr-stat-label">Tổng sản phẩm</span>
+              </div>
+            </div>
+            <div class="pr-stat-card">
+              <span class="pr-stat-icon" style="background:#d1fae5;">✅</span>
+              <div class="pr-stat-info">
+                <span class="pr-stat-value" id="prStatActive">0</span>
+                <span class="pr-stat-label">Đang bán</span>
+              </div>
+            </div>
+            <div class="pr-stat-card">
+              <span class="pr-stat-icon" style="background:#fee2e2;">👁️</span>
+              <div class="pr-stat-info">
+                <span class="pr-stat-value" id="prStatHidden">0</span>
+                <span class="pr-stat-label">Ngừng bán</span>
+              </div>
+            </div>
+            <div class="pr-stat-card">
+              <span class="pr-stat-icon" style="background:#fef3c7;">📦</span>
+              <div class="pr-stat-info">
+                <span class="pr-stat-value" id="prStatStock">0</span>
+                <span class="pr-stat-label">Hết hàng</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product Grid -->
+          <div class="pr-grid" id="prGrid">
+            <div class="pr-empty">
+              <span class="pr-empty-icon">🛒</span>
+              <h3>Chưa có sản phẩm nào</h3>
+              <p>Nhấn "Thêm sản phẩm" để bắt đầu</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Users Page -->
+        <div class="page" id="page-users">
+          <div class="section-header">
+            <div>
+              <h2>Quản lý người dùng</h2>
+              <p>Danh sách tài khoản khách hàng & quản trị viên</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-secondary" onclick="loadUsers()">🔄</button>
+              <button class="btn btn-primary" onclick="openUserModal()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right:4px;"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                Thêm người dùng
+              </button>
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="us-stats">
+            <div class="us-stat-card">
+              <span class="us-stat-icon" style="background:#e0f2fe;">👥</span>
+              <div class="us-stat-info">
+                <span class="us-stat-value" id="usStatTotal">0</span>
+                <span class="us-stat-label">Tổng người dùng</span>
+              </div>
+            </div>
+            <div class="us-stat-card">
+              <span class="us-stat-icon" style="background:#dbeafe;">👑</span>
+              <div class="us-stat-info">
+                <span class="us-stat-value" id="usStatAdmin">0</span>
+                <span class="us-stat-label">Quản trị viên</span>
+              </div>
+            </div>
+            <div class="us-stat-card">
+              <span class="us-stat-icon" style="background:#d1fae5;">😊</span>
+              <div class="us-stat-info">
+                <span class="us-stat-value" id="usStatCustomer">0</span>
+                <span class="us-stat-label">Khách hàng</span>
+              </div>
+            </div>
+            <div class="us-stat-card">
+              <span class="us-stat-icon" style="background:#fef3c7;">📅</span>
+              <div class="us-stat-info">
+                <span class="us-stat-value" id="usStatNew">0</span>
+                <span class="us-stat-label">Tuần này</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- User Grid -->
+          <div class="us-grid" id="usGrid">
+            <div class="us-empty">
+              <span class="us-empty-icon">👥</span>
+              <h3>Chưa có người dùng</h3>
+              <p>Nhấn "Thêm người dùng" để tạo tài khoản mới</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Messages Page -->
+        <div class="page" id="page-messages">
+          <div class="section-header">
+            <div>
+              <h2>Tin nhắn liên hệ</h2>
+              <p>Phản hồi khách hàng gửi từ trang liên hệ</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-secondary" onclick="loadMessages()">🔄</button>
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="msg-stats">
+            <div class="msg-stat-card">
+              <span class="msg-stat-icon" style="background:#e0f2fe;">💬</span>
+              <div class="msg-stat-info">
+                <span class="msg-stat-value" id="msgStatTotal">0</span>
+                <span class="msg-stat-label">Tổng tin nhắn</span>
+              </div>
+            </div>
+            <div class="msg-stat-card">
+              <span class="msg-stat-icon" style="background:#fef3c7;">🕐</span>
+              <div class="msg-stat-info">
+                <span class="msg-stat-value" id="msgStatPending">0</span>
+                <span class="msg-stat-label">Chưa phản hồi</span>
+              </div>
+            </div>
+            <div class="msg-stat-card">
+              <span class="msg-stat-icon" style="background:#d1fae5;">✅</span>
+              <div class="msg-stat-info">
+                <span class="msg-stat-value" id="msgStatReplied">0</span>
+                <span class="msg-stat-label">Đã phản hồi</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Inbox List -->
+          <div class="msg-inbox" id="msgInbox">
+            <div class="msg-empty">
+              <span class="msg-empty-icon">💬</span>
+              <h3>Chưa có tin nhắn nào</h3>
+              <p>Tin nhắn từ khách hàng sẽ hiển thị ở đây</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Order Detail Modal -->
+  <div class="modal" id="statusModal">
+    <div class="modal-content order-detail-modal">
+      <button class="modal-close" onclick="closeStatusModal()">✕</button>
+
+      <!-- Order Header -->
+      <div class="order-detail-header">
+        <div class="order-detail-code">
+          <span class="order-detail-code-icon">📋</span>
+          <div>
+            <h3 id="orderDetailCode">——</h3>
+            <span class="order-detail-date" id="orderDetailDate"></span>
+          </div>
+        </div>
+        <div id="orderDetailBadge"></div>
+      </div>
+
+      <!-- Customer & Payment Info -->
+      <div class="order-detail-info">
+        <div class="order-detail-customer">
+          <span class="order-detail-avatar" id="orderDetailAvatar">?</span>
+          <div>
+            <div class="order-detail-name" id="orderDetailName">——</div>
+            <div class="order-detail-email" id="orderDetailEmail"></div>
+          </div>
+        </div>
+        <div class="order-detail-payment">
+          <span class="order-detail-payment-label">Thanh toán</span>
+          <span class="order-detail-payment-value" id="orderDetailPayment">——</span>
+          <span class="order-detail-payment-label">Địa chỉ</span>
+          <span class="order-detail-payment-value" id="orderDetailAddress" style="font-weight:400;font-size:12px;">——</span>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="order-detail-divider"></div>
+
+      <!-- Items Section -->
+      <div class="order-detail-section">
+        <div class="order-detail-section-header">
+          <span class="order-detail-section-label">SẢN PHẨM</span>
+          <span class="order-detail-section-count" id="orderDetailItemCount">0</span>
+        </div>
+        <div class="order-detail-items" id="orderDetailItems"></div>
+      </div>
+
+      <!-- Total -->
+      <div class="order-detail-total">
+        <span>Tổng cộng</span>
+        <span class="order-detail-total-amount" id="orderDetailTotal">0₫</span>
+      </div>
+
+      <!-- Divider -->
+      <div class="order-detail-divider"></div>
+
+      <!-- Status Update Section -->
+      <div class="order-detail-section">
+        <div class="order-detail-section-header">
+          <span class="order-detail-section-label">CẬP NHẬT TRẠNG THÁI</span>
+          <span class="order-detail-current-status" id="orderDetailCurrentStatus">—</span>
+        </div>
+        <div class="order-status-options" id="orderStatusOptions">
+          <label class="order-status-option" data-value="Chờ xác nhận">
+            <input type="radio" name="orderStatus" value="Chờ xác nhận">
+            <span class="order-status-option-dot" style="background:#f59e0b;"></span>
+            <div class="order-status-option-content">
+              <span class="order-status-option-title">Chờ xác nhận</span>
+              <span class="order-status-option-desc">Đơn hàng mới chờ duyệt</span>
+            </div>
+            <span class="order-status-option-check">✓</span>
+          </label>
+          <label class="order-status-option" data-value="Đang xử lý">
+            <input type="radio" name="orderStatus" value="Đang xử lý">
+            <span class="order-status-option-dot" style="background:#3b82f6;"></span>
+            <div class="order-status-option-content">
+              <span class="order-status-option-title">Đang xử lý</span>
+              <span class="order-status-option-desc">Đang chuẩn bị hàng</span>
+            </div>
+            <span class="order-status-option-check">✓</span>
+          </label>
+          <label class="order-status-option" data-value="Đang giao hàng">
+            <input type="radio" name="orderStatus" value="Đang giao hàng">
+            <span class="order-status-option-dot" style="background:#06b6d4;"></span>
+            <div class="order-status-option-content">
+              <span class="order-status-option-title">Đang giao hàng</span>
+              <span class="order-status-option-desc">Hàng đang trên đường giao</span>
+            </div>
+            <span class="order-status-option-check">✓</span>
+          </label>
+          <label class="order-status-option" data-value="Đã giao hàng">
+            <input type="radio" name="orderStatus" value="Đã giao hàng">
+            <span class="order-status-option-dot" style="background:#10b981;"></span>
+            <div class="order-status-option-content">
+              <span class="order-status-option-title">Đã giao hàng</span>
+              <span class="order-status-option-desc">Khách đã nhận được hàng</span>
+            </div>
+            <span class="order-status-option-check">✓</span>
+          </label>
+          <label class="order-status-option" data-value="Đã hủy">
+            <input type="radio" name="orderStatus" value="Đã hủy">
+            <span class="order-status-option-dot" style="background:#ef4444;"></span>
+            <div class="order-status-option-content">
+              <span class="order-status-option-title">Đã hủy</span>
+              <span class="order-status-option-desc">Đơn hàng đã bị hủy</span>
+            </div>
+            <span class="order-status-option-check">✓</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="order-detail-footer">
+        <button class="btn btn-secondary" onclick="closeStatusModal()">Hủy</button>
+        <button class="btn btn-primary" onclick="confirmStatusUpdate()">
+          <span>✓</span>
+          Cập nhật trạng thái
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Modal -->
+  <div class="modal" id="productModal">
+    <div class="modal-content modal-xl">
+      <button class="modal-close" onclick="closeProductModal()">✕</button>
+
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <span class="modal-badge" id="productModalBadge">📦</span>
+          <div>
+            <h3 id="productModalTitle">Thêm sản phẩm</h3>
+            <p id="productModalSub">Nhập thông tin sản phẩm mới</p>
+          </div>
+        </div>
+        <div class="modal-header-right">
+          <div class="form-group form-group-inline">
+            <label class="toggle-switch">
+              <input type="checkbox" id="pf-status" checked>
+              <span class="toggle-track">
+                <span class="toggle-thumb"></span>
+              </span>
+            </label>
+            <span id="pf-status-label" class="status-indicator status-active">Đang bán</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <form id="productForm" onsubmit="saveProduct(event)">
+          <input type="hidden" id="pf-id">
+
+          <!-- Section: Thông tin cơ bản -->
+          <div class="form-section">
+            <div class="form-section-header">
+              <span class="form-section-icon">📋</span>
+              <div>
+                <h4>Thông tin cơ bản</h4>
+                <p>Tên, danh mục, thương hiệu</p>
+              </div>
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">
+                  Tên sản phẩm
+                  <span class="label-required">*</span>
+                  <span class="label-hint">Tối đa 255 ký tự</span>
+                </label>
+                <input class="form-control" id="pf-name" required maxlength="255" oninput="autoSlug(this.value)" placeholder="VD: Máy hút bụi Robot">
+              </div>
+              <div class="form-group">
+                <label class="form-label">
+                  Slug
+                  <span class="label-required">*</span>
+                  <span class="label-hint">Tự động sinh từ tên</span>
+                </label>
+                <input class="form-control" id="pf-slug" required placeholder="may-hut-bui-robot">
+              </div>
+              <div class="form-group">
+                <label class="form-label">
+                  Danh mục
+                  <span class="label-required">*</span>
+                </label>
+                <div class="select-wrapper">
+                  <select class="form-select" id="pf-category"></select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">
+                  Thương hiệu
+                  <span class="label-required">*</span>
+                </label>
+                <div class="select-wrapper">
+                  <select class="form-select" id="pf-brand"></select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section: Giá & Kho -->
+          <div class="form-section">
+            <div class="form-section-header">
+              <span class="form-section-icon">💰</span>
+              <div>
+                <h4>Giá & Tồn kho</h4>
+                <p>Định giá và số lượng</p>
+              </div>
+            </div>
+            <div class="form-grid form-grid-3">
+              <div class="form-group">
+                <label class="form-label">
+                  Giá bán
+                  <span class="label-required">*</span>
+                </label>
+                <div class="input-affix">
+                  <span class="input-affix-text">₫</span>
+                  <input class="form-control form-control-affix" id="pf-price" type="number" step="1000" min="0" required placeholder="1.000.000">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">
+                  Giá gốc
+                  <span class="label-hint">Hiển thị giá cũ</span>
+                </label>
+                <div class="input-affix">
+                  <span class="input-affix-text">₫</span>
+                  <input class="form-control form-control-affix" id="pf-original-price" type="number" step="1000" min="0" placeholder="1.500.000">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">
+                  Tồn kho
+                  <span class="label-hint">Số lượng</span>
+                </label>
+                <input class="form-control" id="pf-stock" type="number" min="0" value="0" placeholder="0">
+              </div>
+            </div>
+          </div>
+
+          <!-- Section: Hình ảnh -->
+          <div class="form-section">
+            <div class="form-section-header">
+              <span class="form-section-icon">🖼️</span>
+              <div>
+                <h4>Hình ảnh</h4>
+                <p>Ảnh đại diện sản phẩm</p>
+              </div>
+            </div>
+            <div class="image-upload-area" id="imageUploadArea">
+              <div class="image-upload-placeholder" id="imagePlaceholder">
+                <span class="image-upload-icon">📸</span>
+                <span class="image-upload-text">Thêm ảnh sản phẩm</span>
+                <span class="image-upload-hint">Dán URL ảnh bên dưới</span>
+              </div>
+              <img id="imagePreview" class="image-preview hidden" alt="Preview">
+              <button type="button" class="image-remove-btn hidden" id="imageRemoveBtn">✕</button>
+            </div>
+            <div class="form-group" style="margin-top: 12px;">
+              <input class="form-control" id="pf-image" placeholder="https://example.com/image.jpg">
+            </div>
+          </div>
+
+          <!-- Section: Mô tả -->
+          <div class="form-section">
+            <div class="form-section-header">
+              <span class="form-section-icon">📝</span>
+              <div>
+                <h4>Mô tả</h4>
+                <p>Nội dung giới thiệu sản phẩm</p>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label class="form-label">Mô tả ngắn</label>
+              <textarea class="form-control" id="pf-short-desc" rows="2" placeholder="Tóm tắt ngắn về sản phẩm (hiển thị ở danh sách)"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mô tả chi tiết</label>
+              <textarea class="form-control form-control-rich" id="pf-desc" rows="4" placeholder="Mô tả đầy đủ về sản phẩm..."></textarea>
+            </div>
+          </div>
+
+          <!-- Section: Tính năng -->
+          <div class="form-section">
+            <div class="form-section-header">
+              <span class="form-section-icon">⭐</span>
+              <div>
+                <h4>Tính năng nổi bật</h4>
+                <p>Thêm các tính năng chính của sản phẩm</p>
+              </div>
+            </div>
+            <div class="tag-input-wrapper" id="featuresWrapper">
+              <div class="tag-list" id="featuresList"></div>
+              <div class="tag-input-row">
+                <input class="form-control" id="pf-features-input" placeholder="Nhập tính năng và nhấn Enter..." maxlength="100">
+                <button type="button" class="btn btn-secondary btn-sm" id="featuresAddBtn">Thêm</button>
+              </div>
+            </div>
+            <textarea id="pf-features" class="hidden"></textarea>
+          </div>
+
+          <!-- Section: Thông số kỹ thuật -->
+          <div class="form-section">
+            <div class="form-section-header">
+              <span class="form-section-icon">🔧</span>
+              <div>
+                <h4>Thông số kỹ thuật</h4>
+                <p>Chi tiết kỹ thuật sản phẩm</p>
+              </div>
+            </div>
+            <div class="specs-wrapper" id="specsWrapper">
+              <div class="specs-list" id="specsList"></div>
+              <div class="specs-input-row">
+                <input class="form-control" id="pf-specs-key" placeholder="Tên thông số (VD: Điện áp)">
+                <input class="form-control" id="pf-specs-value" placeholder="Giá trị (VD: 24V-48V DC)">
+                <button type="button" class="btn btn-secondary btn-sm" id="specsAddBtn">Thêm</button>
+              </div>
+            </div>
+            <textarea id="pf-specs" class="hidden"></textarea>
+          </div>
+
+          <!-- Section: Hiển thị -->
+          <div class="form-section form-section-last">
+            <div class="form-section-header">
+              <span class="form-section-icon">🏷️</span>
+              <div>
+                <h4>Hiển thị & Nhãn</h4>
+                <p>Tùy chọn hiển thị và gắn nhãn</p>
+              </div>
+            </div>
+            <div class="form-grid form-grid-3">
+              <div class="form-group">
+                <label class="form-label">Badge</label>
+                <div class="badge-selector" id="badgeSelector">
+                  <label class="badge-option" data-value="">
+                    <input type="radio" name="pf-badge" value="" checked>
+                    <span class="badge-option-label">Không</span>
+                  </label>
+                  <label class="badge-option" data-value="NEW">
+                    <input type="radio" name="pf-badge" value="NEW">
+                    <span class="badge-option-label badge-new">NEW</span>
+                  </label>
+                  <label class="badge-option" data-value="HOT">
+                    <input type="radio" name="pf-badge" value="HOT">
+                    <span class="badge-option-label badge-hot">HOT</span>
+                  </label>
+                  <label class="badge-option" data-value="BEST SELLER">
+                    <input type="radio" name="pf-badge" value="BEST SELLER">
+                    <span class="badge-option-label badge-bestseller">BEST SELLER</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeProductModal()">Hủy bỏ</button>
+        <button type="submit" class="btn btn-primary" id="pf-submit-btn" form="productForm">
+          <span class="btn-icon">✨</span>
+          <span id="pf-submit-text">Lưu sản phẩm</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slider Modal -->
+  <div class="modal" id="sliderModal">
+    <div class="modal-content slider-modal-content">
+      <button class="modal-close" onclick="closeSliderModal()">✕</button>
+
+      <div class="slider-modal-layout">
+        <!-- Left: Image Area -->
+        <div class="slider-modal-image-area">
+          <div class="slider-dropzone" id="sliderDropzone">
+            <div class="slider-dropzone-placeholder" id="sliderDzPlaceholder">
+              <span class="slider-dropzone-icon">🖼️</span>
+              <span class="slider-dropzone-text">Kéo thả URL hoặc dán ảnh</span>
+              <span class="slider-dropzone-hint">Click để dán đường dẫn ảnh</span>
+            </div>
+            <img id="sliderPreview" class="slider-dropzone-preview hidden" alt="">
+          </div>
+          <div class="slider-image-input-row">
+            <input class="form-control" id="sl-image" placeholder="https://example.com/image.jpg">
+          </div>
+        </div>
+
+        <!-- Right: Form -->
+        <div class="slider-modal-form-area">
+          <div class="slider-modal-header">
+            <span class="slider-modal-badge" id="sliderModalBadge">🎠</span>
+            <div>
+              <h3 id="sliderModalTitle">Thêm slide</h3>
+              <p id="sliderModalSub">Nhập thông tin slide mới</p>
+            </div>
+          </div>
+
+          <form id="sliderForm" onsubmit="saveSlider(event)">
+            <input type="hidden" id="sl-id">
+
+            <div class="slider-field-group">
+              <label class="slider-field-label">
+                Biểu tượng
+                <span class="slider-field-desc">Chọn emoji đại diện</span>
+              </label>
+              <div class="slider-emoji-grid" id="sliderEmojiGrid">
+                <button type="button" class="slider-emoji-opt" data-emoji="🚗">🚗</button>
+                <button type="button" class="slider-emoji-opt" data-emoji="🤖">🤖</button>
+                <button type="button" class="slider-emoji-opt" data-emoji="📡">📡</button>
+                <button type="button" class="slider-emoji-opt" data-emoji="🌐">🌐</button>
+                <button type="button" class="slider-emoji-opt" data-emoji="⚙️">⚙️</button>
+                <button type="button" class="slider-emoji-opt" data-emoji="📟">📟</button>
+                <button type="button" class="slider-emoji-opt" data-emoji="🎯">🎯</button>
+                <button type="button" class="slider-emoji-opt" data-emoji="💻">💻</button>
+                <button type="button" class="slider-emoji-opt" data-emoji="🔬">🔬</button>
+                <button type="button" class="slider-emoji-opt" data-emoji="🛰️">🛰️</button>
+                <button type="button" class="slider-emoji-opt" data-emoji="🧠">🧠</button>
+                <button type="button" class="slider-emoji-opt" data-emoji="⚡">⚡</button>
+                <button type="button" class="slider-emoji-opt" data-emoji="">✖️</button>
+              </div>
+              <input type="hidden" id="sl-icon">
+            </div>
+
+            <div class="slider-field-group">
+              <label class="slider-field-label">
+                Tiêu đề
+                <span class="slider-field-desc">Tên slide hiển thị</span>
+              </label>
+              <input class="slider-field-input" id="sl-title" required placeholder="VD: Xe Golf Tự Hành">
+            </div>
+
+            <div class="slider-field-group">
+              <label class="slider-field-label">
+                Mô tả
+                <span class="slider-field-desc">Mô tả ngắn cho slide</span>
+              </label>
+              <textarea class="slider-field-textarea" id="sl-desc" rows="2" placeholder="Mô tả ngắn về slide..."></textarea>
+            </div>
+
+            <div class="slider-field-row">
+              <div class="slider-field-group" style="flex:1;">
+                <label class="slider-field-label">Thứ tự</label>
+                <input class="slider-field-input" id="sl-sort" type="number" min="0" value="0">
+              </div>
+              <div class="slider-field-group" style="flex:1;">
+                <label class="slider-field-label">Trạng thái</label>
+                <div class="slider-toggle-row">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="sl-status" checked>
+                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                  </label>
+                  <span id="sl-status-label" class="status-indicator status-active">Hiện</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="slider-modal-actions">
+              <button type="button" class="btn btn-secondary" onclick="closeSliderModal()">Hủy</button>
+              <button type="submit" class="btn btn-primary">
+                <span class="btn-icon">✨</span>
+                <span id="sl-submit-text">Lưu slide</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project Modal -->
+  <div class="modal" id="projectModal">
+    <div class="modal-content pj-modal-content">
+      <button class="modal-close" onclick="closeProjectModal()">✕</button>
+
+      <div class="pj-modal-layout">
+        <!-- Left: Image -->
+        <div class="pj-modal-image-area">
+          <div class="pj-dropzone" id="pjDropzone">
+            <div class="pj-dropzone-placeholder" id="pjDzPlaceholder">
+              <span class="pj-dropzone-icon">🖼️</span>
+              <span class="pj-dropzone-text">Ảnh dự án</span>
+              <span class="pj-dropzone-hint">Dán URL bên dưới</span>
+            </div>
+            <img id="pjPreview" class="pj-dropzone-preview hidden" alt="">
+          </div>
+          <input class="pj-image-input" id="pj-image" placeholder="https://example.com/image.jpg">
+        </div>
+
+        <!-- Right: Form -->
+        <div class="pj-modal-form-area">
+          <div class="pj-modal-header">
+            <span class="pj-modal-badge" id="pjModalBadge">🚀</span>
+            <div>
+              <h3 id="pjModalTitle">Thêm dự án</h3>
+              <p id="pjModalSub">Nhập thông tin dự án mới</p>
+            </div>
+          </div>
+
+          <form id="projectForm" onsubmit="saveProject(event)">
+            <input type="hidden" id="pj-id">
+
+            <div class="pj-field">
+              <label class="pj-field-label">Tên dự án <span class="pj-field-req">*</span></label>
+              <input class="pj-field-input" id="pj-name" required placeholder="VD: Robot tự hành AGV">
+            </div>
+
+            <div class="pj-field">
+              <label class="pj-field-label">Danh mục <span class="pj-field-req">*</span></label>
+              <input class="pj-field-input" id="pj-category" required placeholder="VD: Robot, IoT, AI">
+            </div>
+
+            <div class="pj-field">
+              <label class="pj-field-label">Mô tả</label>
+              <textarea class="pj-field-textarea" id="pj-description" rows="3" placeholder="Giới thiệu về dự án..."></textarea>
+            </div>
+
+            <div class="pj-field">
+              <label class="pj-field-label">
+                Công nghệ
+                <span class="pj-field-hint">Enter để thêm</span>
+              </label>
+              <div class="pj-tag-box">
+                <div class="pj-tag-list" id="pj-tech-list"></div>
+                <div class="pj-tag-input-row">
+                  <input class="pj-tag-input" id="pj-tech-input" placeholder="VD: ROS, Python, LiDAR...">
+                  <button type="button" class="pj-tag-btn" id="pj-tech-add">+</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="pj-field-row">
+              <div class="pj-field" style="flex:1;">
+                <label class="pj-field-label">Tiến độ</label>
+                <div class="pj-progress-input-wrap">
+                  <input class="pj-field-input" id="pj-progress" type="number" min="0" max="100" value="0">
+                  <span class="pj-progress-suffix">%</span>
+                </div>
+              </div>
+              <div class="pj-field" style="flex:1;">
+                <label class="pj-field-label">Trạng thái</label>
+                <div class="pj-status-pills" id="pjStatusPills">
+                  <label class="pj-status-pill" data-value="Đang phát triển">
+                    <input type="radio" name="pjStatus" value="Đang phát triển" checked>
+                    <span class="pj-pill-dot" style="background:#3b82f6;"></span>
+                    <span>Phát triển</span>
+                  </label>
+                  <label class="pj-status-pill" data-value="Đang thử nghiệm">
+                    <input type="radio" name="pjStatus" value="Đang thử nghiệm">
+                    <span class="pj-pill-dot" style="background:#06b6d4;"></span>
+                    <span>Thử nghiệm</span>
+                  </label>
+                  <label class="pj-status-pill" data-value="Hoàn thành">
+                    <input type="radio" name="pjStatus" value="Hoàn thành">
+                    <span class="pj-pill-dot" style="background:#10b981;"></span>
+                    <span>Hoàn thành</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="pj-modal-actions">
+              <button type="button" class="btn btn-secondary" onclick="closeProjectModal()">Hủy</button>
+              <button type="submit" class="btn btn-primary">
+                <span class="btn-icon">✨</span>
+                <span id="pj-submit-text">Lưu dự án</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Modal -->
+  <div class="modal" id="userModal">
+    <div class="modal-content us-modal-content">
+      <button class="modal-close" onclick="closeUserModal()">✕</button>
+
+      <div class="us-modal-layout">
+        <!-- Left: Avatar area -->
+        <div class="us-modal-avatar-area">
+          <div class="us-avatar-circle" id="usAvatarCircle">
+            <span class="us-avatar-emoji" id="usAvatarEmoji">👤</span>
+          </div>
+          <p class="us-avatar-label" id="usAvatarLabel">Ảnh đại diện</p>
+        </div>
+
+        <!-- Right: Form -->
+        <div class="us-modal-form-area">
+          <div class="us-modal-header">
+            <span class="us-modal-badge">👥</span>
+            <div>
+              <h3 id="usModalTitle">Thêm người dùng</h3>
+              <p id="usModalSub">Nhập thông tin tài khoản mới</p>
+            </div>
+          </div>
+
+          <form id="userForm" onsubmit="saveUser(event)">
+            <input type="hidden" id="us-id">
+
+            <div class="us-field-row">
+              <div class="us-field" style="flex:1;">
+                <label class="us-field-label">Họ tên <span class="us-field-req">*</span></label>
+                <input class="us-field-input" id="us-name" required placeholder="VD: Nguyễn Văn A">
+              </div>
+              <div class="us-field" style="flex:1;">
+                <label class="us-field-label">Email <span class="us-field-req">*</span></label>
+                <input class="us-field-input" id="us-email" type="email" required placeholder="user@example.com">
+              </div>
+            </div>
+
+            <div class="us-field-row">
+              <div class="us-field" style="flex:1;">
+                <label class="us-field-label">Số điện thoại</label>
+                <input class="us-field-input" id="us-phone" placeholder="VD: 0912345678">
+              </div>
+              <div class="us-field" style="flex:1;">
+                <label class="us-field-label">Mật khẩu <span class="us-field-req" id="usPassReq">*</span></label>
+                <input class="us-field-input" id="us-password" type="password" placeholder="••••••••" autocomplete="new-password">
+                <span class="us-field-note" id="usPassNote">Để trống nếu không đổi</span>
+              </div>
+            </div>
+
+            <div class="us-field">
+              <label class="us-field-label">Vai trò</label>
+              <div class="us-role-pills" id="usRolePills">
+                <label class="us-role-pill" data-value="2">
+                  <input type="radio" name="usRole" value="2" checked>
+                  <span class="us-role-icon">😊</span>
+                  <span class="us-role-name">Khách hàng</span>
+                  <span class="us-role-desc">Quyền truy cập cơ bản</span>
+                </label>
+                <label class="us-role-pill" data-value="1">
+                  <input type="radio" name="usRole" value="1">
+                  <span class="us-role-icon">👑</span>
+                  <span class="us-role-name">Admin</span>
+                  <span class="us-role-desc">Toàn quyền quản trị</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="us-modal-actions">
+              <button type="button" class="btn btn-secondary" onclick="closeUserModal()">Hủy</button>
+              <button type="submit" class="btn btn-primary">
+                <span class="btn-icon">✨</span>
+                <span id="us-submit-text">Thêm người dùng</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message Modal -->
+  <div class="modal" id="messageModal">
+    <div class="modal-content msg-modal-content">
+      <button class="modal-close" onclick="closeMessageModal()">✕</button>
+
+      <div class="msg-modal-header">
+        <span class="msg-modal-badge">💬</span>
+        <div>
+          <h3>Chi tiết tin nhắn</h3>
+          <p>Xem và phản hồi khách hàng</p>
+        </div>
+      </div>
+
+      <div class="msg-modal-body" id="msgModalBody">
+        <!-- Sender info -->
+        <div class="msg-sender">
+          <div class="msg-sender-avatar" id="msgSenderAvatar">?</div>
+          <div class="msg-sender-info">
+            <span class="msg-sender-name" id="msgSenderName">——</span>
+            <span class="msg-sender-email" id="msgSenderEmail">——</span>
+          </div>
+          <span class="msg-sender-date" id="msgSenderDate">——</span>
+        </div>
+
+        <!-- Message content -->
+        <div class="msg-content-box">
+          <div class="msg-content-label">Nội dung tin nhắn</div>
+          <p class="msg-content-text" id="msgContentText">——</p>
+        </div>
+
+        <!-- Reply section -->
+        <div class="msg-reply-section">
+          <div class="msg-reply-header">
+            <span class="msg-reply-label">Phản hồi</span>
+            <span class="msg-reply-status" id="msgReplyStatus">Chưa phản hồi</span>
+          </div>
+          <textarea class="msg-reply-input" id="msgReplyInput" rows="4" placeholder="Nhập nội dung phản hồi..."></textarea>
+          <div class="msg-reply-prev" id="msgReplyPrev" style="display:none;">
+            <div class="msg-reply-prev-label">Phản hồi trước đó:</div>
+            <p class="msg-reply-prev-text" id="msgReplyPrevText"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="msg-modal-footer">
+        <button class="btn btn-danger" id="msgDeleteBtn" onclick="deleteMessage()">🗑️ Xóa</button>
+        <div class="msg-modal-footer-right">
+          <button class="btn btn-secondary" onclick="closeMessageModal()">Đóng</button>
+          <button class="btn btn-primary" onclick="replyMessage()">
+            <span class="btn-icon">📤</span>
+            Gửi phản hồi
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirm Modal -->
+  <div class="modal" id="deleteModal">
+    <div class="modal-content" style="max-width:400px;">
+      <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+      <div class="modal-header">
+        <h3>Xác nhận xóa</h3>
+      </div>
+      <div class="modal-body">
+        <p id="deleteModalInfo">Bạn chắc chắn muốn xóa?</p>
+        <p id="deleteModalSub" style="font-size:13px;color:var(--muted);margin-top:8px;"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeDeleteModal()">Hủy</button>
+        <button class="btn btn-danger" id="deleteConfirmBtn" onclick="confirmDeleteAction()">Xóa</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Notification Overlay -->
+  <div class="success-overlay" id="successOverlay">
+    <div class="success-card">
+      <div class="success-sparkles">
+        <span class="success-sparkle"></span>
+        <span class="success-sparkle"></span>
+        <span class="success-sparkle"></span>
+        <span class="success-sparkle"></span>
+      </div>
+      <div class="success-icon-wrap">
+        <svg class="success-icon" viewBox="0 0 40 40">
+          <path class="check-path" d="M10 20 L17 27 L30 13" />
+        </svg>
+      </div>
+      <h3 id="successTitle">Cập nhật thành công!</h3>
+      <p class="success-sub" id="successSub">Sản phẩm đã được cập nhật</p>
+      <div class="success-detail" id="successDetail"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <script src="js/services.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
