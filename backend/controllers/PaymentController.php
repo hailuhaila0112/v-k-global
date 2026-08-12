@@ -123,4 +123,35 @@ class PaymentController extends Controller {
             'total_amount'    => $order['total_amount'],
         ]);
     }
+
+    /**
+     * Lấy thông tin QR thanh toán PayOS
+     */
+    public function getQrInfo($orderCode) {
+        $user = AuthMiddleware::handle();
+
+        if ($this->orderModel === null) {
+            $this->sendResponse(false, 'Lỗi kết nối cơ sở dữ liệu', null, 500);
+        }
+
+        $order = $this->orderModel->getByPayosOrderCode((int) $orderCode);
+        if (!$order || (int) $order['user_id'] !== (int) $user['id']) {
+            $this->sendResponse(false, 'Không tìm thấy đơn hàng', null, 404);
+        }
+
+        if (empty($order['payos_qr_code']) && empty($order['payos_checkout_url'])) {
+            $this->sendResponse(false, 'Không có thông tin QR cho đơn hàng này', null, 404);
+        }
+
+        $this->sendResponse(true, 'Lấy thông tin QR thành công', [
+            'order_code'      => $order['order_code'],
+            'payos_order_code'=> $order['payos_order_code'],
+            'payment_status'  => $order['payment_status'],
+            'total_amount'    => $order['total_amount'],
+            'qr_code'         => $order['payos_qr_code'],
+            'checkout_url'    => $order['payos_checkout_url'],
+            'account_number'  => $order['payos_account_number'],
+            'account_name'    => $order['payos_account_name'],
+        ]);
+    }
 }

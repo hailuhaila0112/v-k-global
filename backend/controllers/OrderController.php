@@ -95,17 +95,28 @@ class OrderController extends Controller {
                 $this->orderModel->updatePayosInfo(
                     $orderId,
                     $payosOrderCode,
-                    $paymentData['paymentLinkId'] ?? null
+                    $paymentData['paymentLinkId'] ?? null,
+                    [
+                        'payment_link_id' => $paymentData['paymentLinkId'] ?? null,
+                        'qr_code'         => $paymentData['qrCode'] ?? null,
+                        'checkout_url'    => $paymentData['checkoutUrl'] ?? null,
+                        'account_number'  => $paymentData['accountNumber'] ?? null,
+                        'account_name'    => $paymentData['accountName'] ?? null,
+                    ]
                 );
 
-                $responseData['checkout_url'] = $paymentData['checkoutUrl'] ?? null;
+                $responseData['checkout_url']    = $paymentData['checkoutUrl'] ?? null;
+                $responseData['qr_code']         = $paymentData['qrCode'] ?? null;
+                $responseData['account_number']  = $paymentData['accountNumber'] ?? null;
+                $responseData['account_name']    = $paymentData['accountName'] ?? null;
+                $responseData['amount']          = $amount;
                 $responseData['payos_order_code'] = $payosOrderCode;
 
-                if (empty($responseData['checkout_url'])) {
-                    $this->sendResponse(false, "Không nhận được link thanh toán từ PayOS", null, 500);
+                if (empty($responseData['qr_code']) && empty($responseData['checkout_url'])) {
+                    $this->sendResponse(false, "Không nhận được mã QR hoặc link thanh toán từ PayOS", null, 500);
                 }
 
-                $this->sendResponse(true, "Tạo đơn hàng thành công! Chuyển đến trang thanh toán...", $responseData);
+                $this->sendResponse(true, "Tạo đơn hàng thành công! Quét mã QR để thanh toán.", $responseData);
             } catch (Exception $e) {
                 $this->sendResponse(false, "Lỗi tạo link PayOS: " . $e->getMessage(), [
                     "order_id"   => $orderId,
