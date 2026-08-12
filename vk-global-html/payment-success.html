@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thanh toán thành công - V.K Global Shop</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header>
+    <div class="container nav-bar">
+      <a href="index.html" class="logo">⚡ V.K Global</a>
+      <nav class="nav-links">
+        <a href="index.html">Trang chủ</a>
+        <a href="account.html">Tài khoản</a>
+      </nav>
+      <div class="nav-actions">
+        <button id="dark-toggle" class="btn btn-secondary">🌙</button>
+        <div id="user-nav"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="checkout-page" style="min-height: 60vh; display: flex; align-items: center; justify-content: center;">
+    <div class="card" style="max-width: 520px; width: 100%; padding: 48px 40px; text-align: center; border-radius: 20px;">
+      <div id="status-icon" style="font-size: 72px; margin-bottom: 20px;">⏳</div>
+      <h1 id="status-title" style="font-size: 24px; font-weight: 800; margin-bottom: 8px;">Đang xác nhận thanh toán...</h1>
+      <p id="status-message" style="color: var(--muted); font-size: 15px; margin-bottom: 6px;">Vui lòng đợi trong giây lát.</p>
+      <p id="order-info" style="color: var(--muted); font-size: 14px; margin-bottom: 28px;"></p>
+      <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <a href="index.html" class="btn btn-primary" style="padding: 12px 28px;">Về trang chủ</a>
+        <a href="account.html" class="btn btn-secondary" style="padding: 12px 28px;">Xem đơn hàng</a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>© 2025 V.K Global Shop. Bảo lưu mọi quyền.</p>
+    </div>
+  </footer>
+
+  <script src="js/services.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    const PAYMENT_LABELS = {
+      paid: 'Đã thanh toán',
+      pending: 'Đang chờ thanh toán',
+      unpaid: 'Chưa thanh toán',
+      failed: 'Thanh toán thất bại'
+    };
+
+    async function checkPaymentStatus() {
+      const params = new URLSearchParams(window.location.search);
+      const orderCode = params.get('orderCode');
+
+      const user = authService.getCurrentUser();
+      if (!user) {
+        showToast('🔒 Vui lòng đăng nhập');
+        setTimeout(() => window.location.href = 'account.html', 1500);
+        return;
+      }
+
+      if (!orderCode) {
+        showFailed('Không tìm thấy mã đơn hàng', 'Vui lòng kiểm tra lại liên kết.');
+        return;
+      }
+
+      let attempts = 0;
+      const maxAttempts = 5;
+
+      async function poll() {
+        attempts++;
+        const result = await orderService.getPayOSStatus(orderCode);
+
+        if (result.success && result.data) {
+          const { payment_status, order_code, total_amount } = result.data;
+
+          if (payment_status === 'paid') {
+            document.getElementById('status-icon').textContent = '🎉';
+            document.getElementById('status-title').textContent = 'Thanh toán thành công!';
+            document.getElementById('status-message').textContent = 'Cảm ơn bạn đã thanh toán tại V.K Global.';
+            document.getElementById('order-info').innerHTML =
+              `Mã đơn hàng: <strong style="color: var(--brand);">${order_code}</strong><br>` +
+              `Tổng tiền: <strong>${formatCurrency(total_amount)}</strong>`;
+            return;
+          }
+
+          if (attempts < maxAttempts) {
+            setTimeout(poll, 2000);
+            return;
+          }
+
+          document.getElementById('status-icon').textContent = '⏳';
+          document.getElementById('status-title').textContent = 'Đang chờ xác nhận';
+          document.getElementById('status-message').textContent =
+            'Thanh toán của bạn đang được xử lý. Trạng thái: ' + (PAYMENT_LABELS[payment_status] || payment_status);
+          document.getElementById('order-info').innerHTML =
+            `Mã đơn hàng: <strong style="color: var(--brand);">${order_code}</strong>`;
+          return;
+        }
+
+        showFailed(result.message || 'Không thể xác nhận thanh toán', 'Vui lòng kiểm tra lại trong mục Đơn hàng.');
+      }
+
+      poll();
+    }
+
+    function showFailed(title, message) {
+      document.getElementById('status-icon').textContent = '❌';
+      document.getElementById('status-title').textContent = title;
+      document.getElementById('status-message').textContent = message;
+    }
+
+    document.addEventListener('DOMContentLoaded', checkPaymentStatus);
+  </script>
+</body>
+</html>
