@@ -65,6 +65,10 @@ $router->add('POST', '/api/chat', 'ChatController@respond');
 $router->add('POST', '/api/orders/checkout', 'OrderController@checkout');
 $router->add('GET', '/api/orders/my', 'OrderController@getMyOrders');
 
+// PayOS Payment Routes
+$router->add('POST', '/api/payments/payos/webhook', 'PaymentController@webhook');
+$router->add('GET', '/api/payments/payos/status/{orderCode}', 'PaymentController@getStatus');
+
 // Admin Dashboard Routes
 $router->add('GET', '/api/admin/stats', 'DashboardController@getStats');
 $router->add('GET', '/api/admin/orders', 'DashboardController@getOrders');

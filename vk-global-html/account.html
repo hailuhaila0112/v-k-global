@@ -343,6 +343,14 @@
                 </div>
               `).join("");
 
+              const paymentStatusLabel = {
+                paid: '✅ Đã thanh toán',
+                pending: '⏳ Chờ thanh toán',
+                unpaid: '💵 Chưa thanh toán',
+                failed: '❌ Thất bại'
+              };
+              const payLabel = paymentStatusLabel[order.payment_status] || order.payment_status || '';
+
               return `
                 <div class="card" style="padding: 20px; border-radius: 16px; border: 1px solid var(--border); background: var(--bg);">
                   <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
@@ -350,9 +358,12 @@
                       <span style="font-size: 12px; color: var(--muted); font-weight: 700;">MÃ ĐƠN HÀNG</span>
                       <h4 style="font-size: 16px; font-weight: 800; color: var(--brand);">${order.order_code}</h4>
                     </div>
-                    <span style="font-size: 12px; background: var(--brand-light); color: var(--brand); padding: 6px 12px; border-radius: 20px; font-weight: 800;">
-                      ${order.status}
-                    </span>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                      <span style="font-size: 12px; background: var(--brand-light); color: var(--brand); padding: 6px 12px; border-radius: 20px; font-weight: 800;">
+                        ${order.status}
+                      </span>
+                      ${payLabel ? `<span style="font-size: 12px; background: var(--bg-secondary, #f3f4f6); color: var(--muted); padding: 6px 12px; border-radius: 20px; font-weight: 700;">${payLabel}</span>` : ''}
+                    </div>
                   </div>
                   <p style="font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 10px;">📅 Ngày đặt: ${new Date(order.created_at).toLocaleDateString("vi-VN")}</p>
                   <p style="font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 10px;">📍 Địa chỉ: ${order.shipping_address}</p>

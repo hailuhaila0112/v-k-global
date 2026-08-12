@@ -150,6 +150,18 @@ const orderService = {
       console.error("Get orders failed:", e);
       return [];
     }
+  },
+
+  async getPayOSStatus(orderCode) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/payments/payos/status/${orderCode}`, {
+        headers: getAuthHeaders()
+      });
+      return await response.json();
+    } catch (e) {
+      console.error("Get PayOS status failed:", e);
+      return { success: false, message: "Không thể kiểm tra trạng thái thanh toán" };
+    }
   }
 };
 
