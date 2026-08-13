@@ -8,39 +8,58 @@ require_once __DIR__ . '/../helpers/Response.php';
 class SettingsController extends Controller {
     private $db;
     private $shippingModel;
+    private $initError = null;
 
     public function __construct() {
         try {
             $database = new Database();
             $this->db = $database->getConnection();
+            if ($this->db === null) {
+                $this->initError = 'Không kết nối được database';
+                return;
+            }
             $this->shippingModel = new ShippingRate($this->db);
-        } catch (Exception $e) {
+            if (!empty($this->shippingModel->lastError)) {
+                // Table may still work on next call; keep model
+                error_log('ShippingRate warning: ' . $this->shippingModel->lastError);
+            }
+        } catch (Throwable $e) {
+            $this->initError = $e->getMessage();
             $this->db = null;
             $this->shippingModel = null;
+            error_log('SettingsController init error: ' . $e->getMessage());
         }
     }
 
     private function requireAdmin() {
         $user = AuthMiddleware::handle();
-        if (!$user || ($user['role'] ?? '') !== 'admin') {
-            Response::send(false, "Bạn không có quyền truy cập", null, 403);
+        $role = $user['role'] ?? '';
+        if (!$user || $role !== 'admin') {
+            Response::send(false, "Bạn không có quyền truy cập (role: " . $role . ")", null, 403);
         }
         return $user;
     }
 
+    private function requireModel() {
+        if ($this->shippingModel === null) {
+            $this->sendResponse(
+                false,
+                "Lỗi kết nối / khởi tạo phí vận chuyển" . ($this->initError ? (': ' . $this->initError) : ''),
+                null,
+                500
+            );
+        }
+    }
+
     /** Public: phí mặc định cho cart/checkout */
     public function getShipping() {
-        if ($this->shippingModel === null) {
-            $this->sendResponse(false, "Lỗi kết nối cơ sở dữ liệu", null, 500);
-        }
+        $this->requireModel();
         $this->sendResponse(true, "Lấy cấu hình vận chuyển thành công", $this->shippingModel->toPublicShipping());
     }
 
     /** Public: danh sách phí đang bật */
     public function getActiveRates() {
-        if ($this->shippingModel === null) {
-            $this->sendResponse(false, "Lỗi kết nối cơ sở dữ liệu", null, 500);
-        }
+        $this->requireModel();
         $rates = $this->shippingModel->getActive();
         $this->sendResponse(true, "Lấy danh sách phí vận chuyển thành công", $rates);
     }
@@ -48,18 +67,18 @@ class SettingsController extends Controller {
     /** Admin: list all */
     public function getShippingRates() {
         $this->requireAdmin();
-        if ($this->shippingModel === null) {
-            $this->sendResponse(false, "Lỗi kết nối cơ sở dữ liệu", null, 500);
+        $this->requireModel();
+        $rates = $this->shippingModel->getAll();
+        if ($rates === [] && !empty($this->shippingModel->lastError)) {
+            $this->sendResponse(false, "Không đọc được bảng shipping_rates: " . $this->shippingModel->lastError, null, 500);
         }
-        $this->sendResponse(true, "Lấy danh sách phí vận chuyển thành công", $this->shippingModel->getAll());
+        $this->sendResponse(true, "Lấy danh sách phí vận chuyển thành công", $rates);
     }
 
     /** Admin: create */
     public function createShippingRate() {
         $this->requireAdmin();
-        if ($this->shippingModel === null) {
-            $this->sendResponse(false, "Lỗi kết nối cơ sở dữ liệu", null, 500);
-        }
+        $this->requireModel();
 
         $body = $this->getRequestBody() ?: [];
         $name = trim($body['name'] ?? '');
@@ -84,9 +103,7 @@ class SettingsController extends Controller {
     /** Admin: update */
     public function updateShippingRate() {
         $this->requireAdmin();
-        if ($this->shippingModel === null) {
-            $this->sendResponse(false, "Lỗi kết nối cơ sở dữ liệu", null, 500);
-        }
+        $this->requireModel();
 
         $body = $this->getRequestBody() ?: [];
         $id = (int) ($body['id'] ?? 0);
@@ -117,9 +134,7 @@ class SettingsController extends Controller {
     /** Admin: delete */
     public function deleteShippingRate() {
         $this->requireAdmin();
-        if ($this->shippingModel === null) {
-            $this->sendResponse(false, "Lỗi kết nối cơ sở dữ liệu", null, 500);
-        }
+        $this->requireModel();
 
         $body = $this->getRequestBody() ?: [];
         $id = (int) ($body['id'] ?? 0);
@@ -139,13 +154,9 @@ class SettingsController extends Controller {
         $this->sendResponse(false, $result['message'] ?? "Không thể xóa", null, 500);
     }
 
-    /** Legacy admin endpoints - map to default rate update */
+    /** Legacy admin endpoints */
     public function getShippingAdmin() {
-        $this->requireAdmin();
-        if ($this->shippingModel === null) {
-            $this->sendResponse(false, "Lỗi kết nối cơ sở dữ liệu", null, 500);
-        }
-        $this->sendResponse(true, "OK", $this->shippingModel->getAll());
+        $this->getShippingRates();
     }
 
     public function updateShipping() {

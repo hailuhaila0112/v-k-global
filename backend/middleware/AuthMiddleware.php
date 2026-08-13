@@ -5,14 +5,25 @@ require_once __DIR__ . '/../helpers/Response.php';
 
 class AuthMiddleware {
     public static function handle() {
-        $headers = getallheaders();
-        $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+        $headers = function_exists('getallheaders') ? getallheaders() : [];
+        if (!$headers) $headers = [];
+
+        // Normalize header keys
+        $normalized = [];
+        foreach ($headers as $k => $v) {
+            $normalized[strtolower($k)] = $v;
+        }
+
+        $authHeader = $normalized['authorization']
+            ?? $_SERVER['HTTP_AUTHORIZATION']
+            ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
+            ?? '';
 
         if (empty($authHeader)) {
             Response::send(false, "Yêu cầu quyền truy cập (Token không tồn tại)", null, 401);
         }
 
-        $token = str_replace('Bearer ', '', $authHeader);
+        $token = preg_replace('/^Bearer\s+/i', '', trim($authHeader));
         $decoded = JWT::decode($token);
 
         if (!$decoded) {

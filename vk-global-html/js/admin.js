@@ -21,8 +21,20 @@ async function checkAdminAuth() {
 }
 
 async function fetchAdmin(endpoint) {
-  const res = await fetch(`${ADMIN_API}${endpoint}`, { headers: getAdminHeaders() });
-  return res.json();
+  try {
+    const res = await fetch(`${ADMIN_API}${endpoint}`, { headers: getAdminHeaders() });
+    const text = await res.text();
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      return {
+        success: false,
+        message: `Phản hồi không phải JSON (HTTP ${res.status}): ${text.slice(0, 180)}`
+      };
+    }
+  } catch (e) {
+    return { success: false, message: e.message || 'Không kết nối được máy chủ' };
+  }
 }
 
 // Sidebar Navigation
@@ -40,6 +52,7 @@ function initSidebar() {
       document.getElementById('pageTitle').textContent = label;
       // Close mobile sidebar
       document.getElementById('adminSidebar').classList.remove('open');
+      if (page === 'shipping') loadShippingRates();
     });
   });
 
@@ -1462,39 +1475,44 @@ async function loadShippingRates() {
   if (!tbody) return;
   tbody.innerHTML = '<tr><td colspan="6" class="table-empty" style="padding:24px;text-align:center;color:var(--muted);">Đang tải...</td></tr>';
 
-  const result = await fetchAdmin('/shipping-rates');
-  if (!result.success) {
-    tbody.innerHTML = `<tr><td colspan="6" class="table-empty" style="padding:24px;text-align:center;color:var(--signal);">${result.message || 'Không tải được dữ liệu'}</td></tr>`;
-    return;
+  try {
+    const result = await fetchAdmin('/shipping-rates');
+    if (!result || !result.success) {
+      tbody.innerHTML = `<tr><td colspan="6" class="table-empty" style="padding:24px;text-align:center;color:var(--signal);">${(result && result.message) || 'Không tải được dữ liệu'}</td></tr>`;
+      return;
+    }
+
+    const data = Array.isArray(result.data) ? result.data : [];
+    shippingRatesCache = data;
+
+    if (data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="table-empty" style="padding:24px;text-align:center;color:var(--muted);">Chưa có gói phí vận chuyển. Hãy thêm mới.</td></tr>';
+      return;
+    }
+
+    const fmt = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(n) || 0);
+    const esc = (s) => String(s ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+    tbody.innerHTML = data.map(r => `
+      <tr>
+        <td style="padding:14px 16px;"><strong>${esc(r.name)}</strong></td>
+        <td style="padding:14px 16px;text-align:right;font-weight:700;">${fmt(r.fee)}</td>
+        <td style="padding:14px 16px;text-align:right;">${Number(r.free_shipping_threshold) > 0 ? fmt(r.free_shipping_threshold) : '—'}</td>
+        <td style="padding:14px 16px;text-align:center;">
+          <span style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:${Number(r.is_active) ? '#d1fae5' : '#fee2e2'};color:${Number(r.is_active) ? '#065f46' : '#991b1b'};">
+            ${Number(r.is_active) ? 'Hoạt động' : 'Tắt'}
+          </span>
+        </td>
+        <td style="padding:14px 16px;text-align:center;">${Number(r.is_default) ? '⭐' : '—'}</td>
+        <td style="padding:14px 16px;text-align:right;">
+          <button class="btn btn-secondary" style="padding:6px 10px;margin-right:6px;" onclick="editShippingRate(${Number(r.id)})">Sửa</button>
+          <button class="btn" style="padding:6px 10px;color:var(--signal);background:transparent;" onclick="openDeleteModal('shipping', ${Number(r.id)}, '${esc(r.name)}')">Xóa</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="6" class="table-empty" style="padding:24px;text-align:center;color:var(--signal);">${e.message || 'Lỗi không xác định'}</td></tr>`;
   }
-
-  const data = result.data || [];
-  shippingRatesCache = data;
-
-  if (data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="table-empty" style="padding:24px;text-align:center;color:var(--muted);">Chưa có gói phí vận chuyển. Hãy thêm mới.</td></tr>';
-    return;
-  }
-
-  const fmt = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(n) || 0);
-
-  tbody.innerHTML = data.map(r => `
-    <tr>
-      <td style="padding:14px 16px;"><strong>${r.name}</strong></td>
-      <td style="padding:14px 16px;text-align:right;font-weight:700;">${fmt(r.fee)}</td>
-      <td style="padding:14px 16px;text-align:right;">${Number(r.free_shipping_threshold) > 0 ? fmt(r.free_shipping_threshold) : '—'}</td>
-      <td style="padding:14px 16px;text-align:center;">
-        <span style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:${Number(r.is_active) ? '#d1fae5' : '#fee2e2'};color:${Number(r.is_active) ? '#065f46' : '#991b1b'};">
-          ${Number(r.is_active) ? 'Hoạt động' : 'Tắt'}
-        </span>
-      </td>
-      <td style="padding:14px 16px;text-align:center;">${Number(r.is_default) ? '⭐' : '—'}</td>
-      <td style="padding:14px 16px;text-align:right;">
-        <button class="btn btn-secondary" style="padding:6px 10px;margin-right:6px;" onclick="editShippingRate(${r.id})">Sửa</button>
-        <button class="btn" style="padding:6px 10px;color:var(--signal);background:transparent;" onclick="openDeleteModal('shipping', ${r.id}, '${String(r.name).replace(/'/g, "\\'")}')">Xóa</button>
-      </td>
-    </tr>
-  `).join('');
 }
 
 function openShippingModal(rate = null) {

@@ -22,6 +22,11 @@ class Router {
             $path = substr($path, strlen($basePath));
         }
 
+        // Fallback: lấy phần bắt đầu từ /api/...
+        if (strpos($path, '/api/') !== false) {
+            $path = substr($path, strpos($path, '/api/'));
+        }
+
         // Nếu path không bắt đầu bằng / sau khi strip, thêm / vào đầu
         if (empty($path) || $path[0] !== '/') {
             $path = '/' . $path;
@@ -47,6 +52,7 @@ class Router {
         }
 
         http_response_code(404);
-        echo json_encode(["success" => false, "message" => "API Route not found: " . $path]);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(["success" => false, "message" => "API Route not found: " . $path], JSON_UNESCAPED_UNICODE);
     }
 }
