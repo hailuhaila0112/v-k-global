@@ -18,6 +18,10 @@ register_shutdown_function(function () {
 });
 
 try {
+  // Load .env (PayOS credentials, etc.)
+  require_once __DIR__ . '/../config/Env.php';
+  Env::load();
+
   // Entry point for RESTful API routing
   require_once __DIR__ . '/../middleware/CorsMiddleware.php';
   CorsMiddleware::handle();
@@ -67,6 +71,10 @@ $router->add('GET', '/api/orders/my', 'OrderController@getMyOrders');
 
 // Settings (public shipping config for cart/checkout)
 $router->add('GET', '/api/settings/shipping', 'SettingsController@getShipping');
+// PayOS Payment Routes
+$router->add('POST', '/api/payments/payos/webhook', 'PaymentController@webhook');
+$router->add('GET', '/api/payments/payos/status/{orderCode}', 'PaymentController@getStatus');
+$router->add('GET', '/api/payments/payos/qr/{orderCode}', 'PaymentController@getQrInfo');
 
 // Admin Dashboard Routes
 $router->add('GET', '/api/admin/stats', 'DashboardController@getStats');

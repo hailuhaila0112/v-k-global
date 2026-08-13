@@ -90,6 +90,15 @@ CREATE TABLE IF NOT EXISTS orders (
     total_amount DECIMAL(15,2) NOT NULL,
     status VARCHAR(50) NOT NULL DEFAULT 'Pending', -- Pending, Confirmed, Shipping, Completed, Cancelled
     payment_method VARCHAR(50) NOT NULL DEFAULT 'COD',
+    payment_status VARCHAR(50) NOT NULL DEFAULT 'unpaid', -- unpaid, pending, paid, failed
+    payos_order_code BIGINT NULL UNIQUE,
+    payos_payment_link_id VARCHAR(100) NULL,
+    payos_qr_code TEXT NULL,
+    payos_checkout_url VARCHAR(500) NULL,
+    payos_account_number VARCHAR(50) NULL,
+    payos_account_name VARCHAR(255) NULL,
+    payos_transaction_id VARCHAR(100) NULL,
+    paid_at TIMESTAMP NULL,
     shipping_address TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

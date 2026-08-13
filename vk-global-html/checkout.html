@@ -116,6 +116,19 @@
                 </div>
               </label>
               <label class="payment-method">
+                <input type="radio" name="payment" value="PayOS">
+                <div class="payment-method-content">
+                  <div class="payment-method-left">
+                    <span class="payment-method-icon">📱</span>
+                    <div>
+                      <strong>Quét mã VietQR (PayOS)</strong>
+                      <span class="payment-method-desc">PayOS tạo mã QR — mở app ngân hàng quét để thanh toán</span>
+                    </div>
+                  </div>
+                  <span class="payment-checkmark">✓</span>
+                </div>
+              </label>
+              <label class="payment-method">
                 <input type="radio" name="payment" value="Momo">
                 <div class="payment-method-content">
                   <div class="payment-method-left">
@@ -345,6 +358,9 @@
       document.getElementById('co-total-mobile').textContent = formatCurrency(grandTotal);
       document.getElementById('co-submit-total').textContent = formatCurrency(grandTotal);
 
+      const selectedPayment = document.querySelector('input[name="payment"]:checked')?.value || 'COD';
+      updateSubmitButtonLabel(selectedPayment);
+
       // Show discount row only if there's original_price product
       const hasDiscount = checkoutCart.some(item => {
         const p = checkoutProducts.find(prod => prod.id == item.productId);
@@ -357,8 +373,18 @@
     document.querySelectorAll('input[name="payment"]').forEach(radio => {
       radio.addEventListener('change', function () {
         document.getElementById('bankInfo').classList.toggle('visible', this.value === 'Bank Transfer');
+        updateSubmitButtonLabel(this.value);
       });
     });
+
+    function updateSubmitButtonLabel(paymentMethod) {
+      const label = paymentMethod === 'PayOS' ? 'Tạo mã QR thanh toán' : 'Đặt hàng';
+      const submitBtn = document.getElementById('co-submit');
+      const total = document.getElementById('co-submit-total')?.textContent || '0₫';
+      if (submitBtn && !submitBtn.disabled) {
+        submitBtn.innerHTML = `<span class="btn-icon">${paymentMethod === 'PayOS' ? '📱' : '✨'}</span><span>${label} — <strong id="co-submit-total">${total}</strong></span>`;
+      }
+    }
 
     async function placeOrder() {
       const submitBtn = document.getElementById('co-submit');
@@ -418,7 +444,29 @@
       });
 
       if (result.success) {
-        // Clear cart
+        // PayOS: chuyển đến trang quét mã QR
+        if (paymentMethod === 'PayOS' && result.data && result.data.payos_order_code) {
+          cart = [];
+          saveCart();
+
+          if (result.data.qr_code || result.data.checkout_url) {
+            sessionStorage.setItem('payos_qr_' + result.data.payos_order_code, JSON.stringify({
+              order_code: result.data.order_code,
+              payos_order_code: result.data.payos_order_code,
+              total_amount: totalAmount,
+              qr_code: result.data.qr_code,
+              checkout_url: result.data.checkout_url,
+              account_number: result.data.account_number,
+              account_name: result.data.account_name,
+              payment_status: 'pending'
+            }));
+          }
+
+          window.location.href = 'payment-qr.html?orderCode=' + result.data.payos_order_code;
+          return;
+        }
+
+        // COD / chuyển khoản thủ công: hiện modal thành công
         cart = [];
         saveCart();
 
