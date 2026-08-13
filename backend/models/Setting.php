@@ -18,17 +18,7 @@ class Setting {
             ) ENGINE=InnoDB
         ");
 
-        $defaults = [
-            'shipping_fee' => '30000',
-            'free_shipping_threshold' => '15000000',
-        ];
-
-        foreach ($defaults as $key => $value) {
-            $stmt = $this->conn->prepare(
-                "INSERT IGNORE INTO settings (setting_key, setting_value) VALUES (:k, :v)"
-            );
-            $stmt->execute([':k' => $key, ':v' => $value]);
-        }
+        // Không seed cứng 30000 — phí lấy từ bảng shipping_rates
     }
 
     public function get($key, $default = null) {
@@ -50,8 +40,8 @@ class Setting {
 
     public function getShipping() {
         return [
-            'shipping_fee' => (float) $this->get('shipping_fee', '30000'),
-            'free_shipping_threshold' => (float) $this->get('free_shipping_threshold', '15000000'),
+            'shipping_fee' => (float) $this->get('shipping_fee', '0'),
+            'free_shipping_threshold' => (float) $this->get('free_shipping_threshold', '0'),
         ];
     }
 

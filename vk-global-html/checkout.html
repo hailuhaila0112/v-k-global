@@ -258,9 +258,10 @@
   <script src="js/services.js"></script>
   <script src="js/main.js"></script>
   <script>
-    let shippingFee = 30000;
-    let freeShippingThreshold = 15000000;
-    let shippingName = 'Giao hàng tiêu chuẩn';
+    let shippingFee = 0;
+    let freeShippingThreshold = 0;
+    let shippingConfigured = false;
+    let shippingName = 'Shipping';
 
     let checkoutCart = [];
     let checkoutLines = []; // { item, product }
@@ -269,10 +270,14 @@
     function applyShippingHint() {
       const hint = document.getElementById('co-free-ship-hint');
       if (!hint) return;
+      if (!shippingConfigured) {
+        hint.textContent = '🚚 Chưa cấu hình phí vận chuyển — vào Admin → Vận chuyển để thêm';
+        return;
+      }
       if (freeShippingThreshold > 0) {
-        hint.textContent = `🚚 ${shippingName}: ${formatCurrency(shippingFee)} — miễn phí từ ${formatCurrency(freeShippingThreshold)}`;
+        hint.textContent = '🚚 ' + shippingName + ': ' + formatCurrency(shippingFee) + ' — miễn phí từ ' + formatCurrency(freeShippingThreshold);
       } else {
-        hint.textContent = `🚚 ${shippingName}: ${formatCurrency(shippingFee)}`;
+        hint.textContent = '🚚 ' + shippingName + ': ' + formatCurrency(shippingFee);
       }
     }
 
@@ -292,7 +297,7 @@
       };
 
       setText('co-subtotal', formatCurrency(subtotal));
-      setText('co-shipping', ship === 0 ? 'Miễn phí' : formatCurrency(ship));
+      setText('co-shipping', !shippingConfigured ? 'Chưa cấu hình' : (ship === 0 ? 'Miễn phí' : formatCurrency(ship)));
       setText('co-total', formatCurrency(grandTotal));
       setText('co-total-mobile', formatCurrency(grandTotal));
       setText('co-submit-total', formatCurrency(grandTotal));
@@ -437,8 +442,14 @@
         const th = Number(settings.free_shipping_threshold);
         if (Number.isFinite(fee)) shippingFee = fee;
         if (Number.isFinite(th)) freeShippingThreshold = th;
+        shippingConfigured = settings.configured !== false && !settings.error;
         shippingName = settings.name || shippingName;
-        applyShippingHint();
+        if (settings.error) {
+          const hint = document.getElementById('co-free-ship-hint');
+          if (hint) hint.textContent = '⚠ ' + settings.error;
+        } else {
+          applyShippingHint();
+        }
         updateTotals(checkoutTotal);
       }).catch(() => {});
 

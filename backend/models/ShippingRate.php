@@ -16,6 +16,7 @@ class ShippingRate {
     private function ensureTable() {
         if ($this->conn === null) return;
 
+        // Chỉ tạo bảng — KHÔNG tự insert 30000 (tránh hiện lại sau khi admin xóa)
         $this->conn->exec("
             CREATE TABLE IF NOT EXISTS shipping_rates (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -28,34 +29,32 @@ class ShippingRate {
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         ");
+    }
 
-        $count = (int) $this->conn->query("SELECT COUNT(*) FROM shipping_rates")->fetchColumn();
-        if ($count > 0) return;
-
-        $fee = 30000;
-        $threshold = 15000000;
-
+    private function syncSettingsFromDefault() {
         try {
-            $check = $this->conn->query("SHOW TABLES LIKE 'settings'");
-            if ($check && $check->rowCount() > 0) {
-                $stmt = $this->conn->query(
-                    "SELECT setting_key, setting_value FROM settings
-                     WHERE setting_key IN ('shipping_fee','free_shipping_threshold')"
-                );
-                foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-                    if ($row['setting_key'] === 'shipping_fee') $fee = (float) $row['setting_value'];
-                    if ($row['setting_key'] === 'free_shipping_threshold') $threshold = (float) $row['setting_value'];
-                }
-            }
-        } catch (Throwable $e) {
-            // ignore missing settings table
-        }
+            $rate = $this->getDefault();
+            $fee = $rate ? (float) $rate['fee'] : 0;
+            $threshold = $rate ? (float) $rate['free_shipping_threshold'] : 0;
 
-        $insert = $this->conn->prepare(
-            "INSERT INTO shipping_rates (name, fee, free_shipping_threshold, is_active, is_default)
-             VALUES ('Giao hàng tiêu chuẩn', ?, ?, 1, 1)"
-        );
-        $insert->execute([$fee, $threshold]);
+            $this->conn->exec("
+                CREATE TABLE IF NOT EXISTS settings (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    setting_key VARCHAR(100) NOT NULL UNIQUE,
+                    setting_value TEXT NOT NULL,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+            ");
+
+            $stmt = $this->conn->prepare(
+                "INSERT INTO settings (setting_key, setting_value) VALUES (:k, :v)
+                 ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)"
+            );
+            $stmt->execute([':k' => 'shipping_fee', ':v' => (string) $fee]);
+            $stmt->execute([':k' => 'free_shipping_threshold', ':v' => (string) $threshold]);
+        } catch (Throwable $e) {
+            // settings sync is best-effort
+        }
     }
 
     public function getAll() {
@@ -123,6 +122,13 @@ class ShippingRate {
                 "INSERT INTO shipping_rates (name, fee, free_shipping_threshold, is_active, is_default)
                  VALUES (?, ?, ?, ?, ?)"
             );
+            // Nếu đây là bản ghi đầu tiên → tự đặt mặc định
+            $count = (int) $this->conn->query("SELECT COUNT(*) FROM shipping_rates")->fetchColumn();
+            if ($count === 0) {
+                $isDefault = 1;
+                $isActive = 1;
+            }
+
             $stmt->execute([
                 $name,
                 max(0, (float) $fee),
@@ -130,7 +136,9 @@ class ShippingRate {
                 $isActive ? 1 : 0,
                 $isDefault ? 1 : 0,
             ]);
-            return ["success" => true, "id" => (int) $this->conn->lastInsertId()];
+            $newId = (int) $this->conn->lastInsertId();
+            $this->syncSettingsFromDefault();
+            return ["success" => true, "id" => $newId];
         } catch (Throwable $e) {
             return ["success" => false, "message" => $e->getMessage()];
         }
@@ -159,6 +167,7 @@ class ShippingRate {
                 $isDefault ? 1 : 0,
                 (int) $id,
             ]);
+            $this->syncSettingsFromDefault();
             return ["success" => true];
         } catch (Throwable $e) {
             return ["success" => false, "message" => $e->getMessage()];
@@ -180,6 +189,7 @@ class ShippingRate {
             $fix->execute([$firstId]);
         }
 
+        $this->syncSettingsFromDefault();
         return ["success" => true];
     }
 
@@ -187,10 +197,11 @@ class ShippingRate {
         $rate = $rate ?: $this->getDefault();
         if (!$rate) {
             return [
-                'shipping_fee' => 30000,
-                'free_shipping_threshold' => 15000000,
+                'shipping_fee' => 0,
+                'free_shipping_threshold' => 0,
                 'shipping_rate_id' => null,
-                'name' => 'Giao hàng tiêu chuẩn',
+                'name' => 'Chưa cấu hình',
+                'configured' => false,
             ];
         }
         return [
@@ -198,6 +209,7 @@ class ShippingRate {
             'free_shipping_threshold' => (float) $rate['free_shipping_threshold'],
             'shipping_rate_id' => (int) $rate['id'],
             'name' => $rate['name'],
+            'configured' => true,
         ];
     }
 }

@@ -142,11 +142,6 @@ class SettingsController extends Controller {
             $this->sendResponse(false, "Thiếu id", null, 400);
         }
 
-        $all = $this->shippingModel->getAll();
-        if (count($all) <= 1) {
-            $this->sendResponse(false, "Phải giữ lại ít nhất 1 gói vận chuyển", null, 400);
-        }
-
         $result = $this->shippingModel->delete($id);
         if ($result['success']) {
             $this->sendResponse(true, "Đã xóa phí vận chuyển", null);

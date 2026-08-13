@@ -160,8 +160,8 @@ CREATE TABLE IF NOT EXISTS settings (
 ) ENGINE=InnoDB;
 
 INSERT INTO settings (setting_key, setting_value) VALUES
-    ('shipping_fee', '30000'),
-    ('free_shipping_threshold', '15000000')
+    ('shipping_fee', '0'),
+    ('free_shipping_threshold', '0')
 ON DUPLICATE KEY UPDATE setting_key = setting_key;
 
 -- Seed Roles

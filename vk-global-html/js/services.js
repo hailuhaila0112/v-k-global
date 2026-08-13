@@ -227,31 +227,42 @@ const orderService = {
 const settingsService = {
   async getShipping() {
     try {
-      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-      const timer = controller ? setTimeout(() => controller.abort(), 8000) : null;
-      const response = await fetch(`${API_BASE_URL}/settings/shipping`, controller ? { signal: controller.signal } : undefined);
-      if (timer) clearTimeout(timer);
-      const result = await response.json();
+      const result = await fetchJson(`${API_BASE_URL}/settings/shipping`, {}, 8000);
       if (result.success && result.data) {
         const fee = Number(result.data.shipping_fee);
         const threshold = Number(result.data.free_shipping_threshold);
         return {
-          shipping_fee: Number.isFinite(fee) ? fee : 30000,
-          free_shipping_threshold: Number.isFinite(threshold) ? threshold : 15000000,
+          shipping_fee: Number.isFinite(fee) ? fee : 0,
+          free_shipping_threshold: Number.isFinite(threshold) ? threshold : 0,
           shipping_rate_id: result.data.shipping_rate_id || null,
-          name: result.data.name || 'Giao hàng tiêu chuẩn'
+          name: result.data.name || 'Phí vận chuyển',
+          configured: result.data.configured !== false
         };
       }
+      return {
+        shipping_fee: 0,
+        free_shipping_threshold: 0,
+        shipping_rate_id: null,
+        name: 'Chưa cấu hình',
+        configured: false,
+        error: result.message || 'Không lấy được phí vận chuyển'
+      };
     } catch (e) {
       console.error("Get shipping settings failed:", e);
+      return {
+        shipping_fee: 0,
+        free_shipping_threshold: 0,
+        shipping_rate_id: null,
+        name: 'Chưa cấu hình',
+        configured: false,
+        error: e.message || 'Không kết nối được máy chủ'
+      };
     }
-    return { shipping_fee: 30000, free_shipping_threshold: 15000000, shipping_rate_id: null, name: 'Giao hàng tiêu chuẩn' };
   },
 
   async getShippingRates() {
     try {
-      const response = await fetch(`${API_BASE_URL}/shipping-rates`);
-      const result = await response.json();
+      const result = await fetchJson(`${API_BASE_URL}/shipping-rates`, {}, 8000);
       return result.success && result.data ? result.data : [];
     } catch (e) {
       console.error("Get shipping rates failed:", e);

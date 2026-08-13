@@ -483,6 +483,17 @@ footer {
   pointer-events: auto;
 }
 
+#shippingModal,
+#statusModal,
+#deleteModal,
+#productModal,
+#projectModal,
+#sliderModal,
+#userModal,
+#messageModal {
+  z-index: 10050;
+}
+
 .modal-content {
   background: var(--panel);
   border-radius: 24px;

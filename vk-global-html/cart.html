@@ -60,8 +60,8 @@
   <script src="js/services.js"></script>
   <script src="js/main.js"></script>
   <script>
-    let shippingFee = 30000;
-    let freeShippingThreshold = 15000000;
+    let shippingFee = 0;
+    let freeShippingThreshold = 0;
     let shippingName = 'Giao hàng tiêu chuẩn';
 
     function sameProductId(a, b) {
@@ -248,11 +248,14 @@
     document.addEventListener("DOMContentLoaded", async () => {
       try {
         const settings = await settingsService.getShipping();
-        shippingFee = settings.shipping_fee;
-        freeShippingThreshold = settings.free_shipping_threshold;
+        shippingFee = Number(settings.shipping_fee) || 0;
+        freeShippingThreshold = Number(settings.free_shipping_threshold) || 0;
         shippingName = settings.name || shippingName;
+        if (settings.error) console.warn('Shipping settings:', settings.error);
       } catch (e) {
         console.warn('Shipping settings fallback', e);
+        shippingFee = 0;
+        freeShippingThreshold = 0;
       }
       await renderCart();
       updateCartBadge();

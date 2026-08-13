@@ -20,9 +20,17 @@ async function checkAdminAuth() {
   return user;
 }
 
-async function fetchAdmin(endpoint) {
+async function fetchAdmin(endpoint, options = {}) {
+  const timeoutMs = options.timeoutMs || 10000;
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
   try {
-    const res = await fetch(`${ADMIN_API}${endpoint}`, { headers: getAdminHeaders() });
+    const res = await fetch(`${ADMIN_API}${endpoint}`, {
+      method: options.method || 'GET',
+      headers: getAdminHeaders(),
+      body: options.body || undefined,
+      signal: controller ? controller.signal : undefined
+    });
     const text = await res.text();
     try {
       return JSON.parse(text);
@@ -33,7 +41,12 @@ async function fetchAdmin(endpoint) {
       };
     }
   } catch (e) {
-    return { success: false, message: e.message || 'Không kết nối được máy chủ' };
+    const msg = e.name === 'AbortError'
+      ? `Hết thời gian chờ API (${timeoutMs / 1000}s): ${endpoint}`
+      : (e.message || 'Không kết nối được máy chủ');
+    return { success: false, message: msg };
+  } finally {
+    if (timer) clearTimeout(timer);
   }
 }
 
@@ -1476,9 +1489,14 @@ async function loadShippingRates() {
   tbody.innerHTML = '<tr><td colspan="6" class="table-empty" style="padding:24px;text-align:center;color:var(--muted);">Đang tải...</td></tr>';
 
   try {
-    const result = await fetchAdmin('/shipping-rates');
+    const result = await fetchAdmin('/shipping-rates', { timeoutMs: 10000 });
     if (!result || !result.success) {
-      tbody.innerHTML = `<tr><td colspan="6" class="table-empty" style="padding:24px;text-align:center;color:var(--signal);">${(result && result.message) || 'Không tải được dữ liệu'}</td></tr>`;
+      const msg = (result && result.message) || 'Không tải được dữ liệu';
+      tbody.innerHTML = `<tr><td colspan="6" class="table-empty" style="padding:24px;text-align:center;color:var(--signal);">
+        ${msg}<br>
+        <button class="btn btn-secondary" style="margin-top:12px;" onclick="loadShippingRates()">Thử lại</button>
+      </td></tr>`;
+      showToast('❌ ' + msg);
       return;
     }
 
@@ -1486,7 +1504,7 @@ async function loadShippingRates() {
     shippingRatesCache = data;
 
     if (data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" class="table-empty" style="padding:24px;text-align:center;color:var(--muted);">Chưa có gói phí vận chuyển. Hãy thêm mới.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" class="table-empty" style="padding:24px;text-align:center;color:var(--muted);">Chưa có gói phí vận chuyển. Bấm \"+ Thêm phí vận chuyển\".</td></tr>';
       return;
     }
 
@@ -1516,28 +1534,35 @@ async function loadShippingRates() {
 }
 
 function openShippingModal(rate = null) {
+  const modal = document.getElementById('shippingModal');
+  if (!modal) {
+    showToast('❌ Không tìm thấy form phí vận chuyển');
+    return;
+  }
   document.getElementById('shipRateId').value = rate?.id || '';
   document.getElementById('shipRateName').value = rate?.name || '';
-  document.getElementById('shipRateFee').value = rate?.fee ?? 30000;
-  document.getElementById('shipRateThreshold').value = rate?.free_shipping_threshold ?? 15000000;
+  document.getElementById('shipRateFee').value = rate?.fee ?? 0;
+  document.getElementById('shipRateThreshold').value = rate?.free_shipping_threshold ?? 0;
   document.getElementById('shipRateActive').checked = rate ? Number(rate.is_active) === 1 : true;
-  document.getElementById('shipRateDefault').checked = rate ? Number(rate.is_default) === 1 : false;
+  document.getElementById('shipRateDefault').checked = rate ? Number(rate.is_default) === 1 : (shippingRatesCache.length === 0);
   document.getElementById('shippingModalTitle').textContent = rate ? 'Sửa phí vận chuyển' : 'Thêm phí vận chuyển';
   document.getElementById('shippingModalSub').textContent = rate ? 'Cập nhật thông tin gói phí ship' : 'Tạo gói phí ship mới';
-  document.getElementById('shippingModal').classList.add('active');
+  modal.classList.add('active');
 }
 
 function closeShippingModal() {
-  document.getElementById('shippingModal').classList.remove('active');
+  const modal = document.getElementById('shippingModal');
+  if (modal) modal.classList.remove('active');
 }
 
 function editShippingRate(id) {
   const rate = shippingRatesCache.find(r => Number(r.id) === Number(id));
   if (rate) openShippingModal(rate);
+  else showToast('❌ Không tìm thấy gói phí');
 }
 
 async function saveShippingRate(e) {
-  e.preventDefault();
+  if (e && e.preventDefault) e.preventDefault();
   const id = document.getElementById('shipRateId').value;
   const body = {
     name: document.getElementById('shipRateName').value.trim(),
@@ -1551,18 +1576,23 @@ async function saveShippingRate(e) {
     showToast('❌ Vui lòng nhập tên gói');
     return false;
   }
+  if (!Number.isFinite(body.fee) || body.fee < 0) {
+    showToast('❌ Phí vận chuyển không hợp lệ');
+    return false;
+  }
 
   const btn = document.getElementById('btnSaveShipRate');
-  btn.disabled = true;
-  btn.textContent = '⏳ Đang lưu...';
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '⏳ Đang lưu...';
+  }
 
   try {
-    const res = await fetch(`${ADMIN_API}/shipping-rates`, {
+    const data = await fetchAdmin('/shipping-rates', {
       method: id ? 'PUT' : 'POST',
-      headers: getAdminHeaders(),
-      body: JSON.stringify(id ? { ...body, id: Number(id) } : body)
+      body: JSON.stringify(id ? { ...body, id: Number(id) } : body),
+      timeoutMs: 12000
     });
-    const data = await res.json();
     if (data.success) {
       showToast(id ? '✅ Đã cập nhật phí vận chuyển' : '✅ Đã thêm phí vận chuyển');
       closeShippingModal();
@@ -1574,10 +1604,18 @@ async function saveShippingRate(e) {
     showToast('❌ Không thể kết nối máy chủ');
   }
 
-  btn.disabled = false;
-  btn.textContent = '💾 Lưu';
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = '💾 Lưu';
+  }
   return false;
 }
+
+window.openShippingModal = openShippingModal;
+window.closeShippingModal = closeShippingModal;
+window.loadShippingRates = loadShippingRates;
+window.saveShippingRate = saveShippingRate;
+window.editShippingRate = editShippingRate;
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', async () => {

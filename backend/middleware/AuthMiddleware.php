@@ -19,6 +19,22 @@ class AuthMiddleware {
             ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
             ?? '';
 
+        if ($authHeader === '' && function_exists('apache_request_headers')) {
+            $apacheHeaders = apache_request_headers();
+            foreach ($apacheHeaders as $k => $v) {
+                if (strtolower($k) === 'authorization') {
+                    $authHeader = $v;
+                    break;
+                }
+            }
+        }
+
+        if ($authHeader === '') {
+            $envAuth = getenv('HTTP_AUTHORIZATION');
+            if (is_string($envAuth) && $envAuth !== '') {
+                $authHeader = $envAuth;
+            }
+        }
         if (empty($authHeader)) {
             Response::send(false, "Yêu cầu quyền truy cập (Token không tồn tại)", null, 401);
         }
