@@ -194,7 +194,6 @@
         return;
       }
 
-      // Thử lấy từ sessionStorage trước (nhanh hơn)
       const cached = sessionStorage.getItem('payos_qr_' + payosOrderCode);
       if (cached) {
         try {
@@ -202,7 +201,6 @@
         } catch (e) {}
       }
 
-      // Lấy từ API (đảm bảo có dữ liệu khi refresh trang)
       const result = await orderService.getPayOSQrInfo(payosOrderCode);
       if (result.success && result.data) {
         sessionStorage.setItem('payos_qr_' + payosOrderCode, JSON.stringify(result.data));
@@ -215,7 +213,86 @@
       startPolling();
     }
 
-    function renderQrPage(data) {
+    function isImagePayload(value) {
+      if (!value || typeof value !== 'string') return false;
+      const v = value.trim();
+      if (v.startsWith('data:image')) return true;
+      // Chỉ coi là ảnh khi URL trông giống file/ảnh QR, không phải checkout page
+      if (/^https?:\/\//i.test(v)) {
+        return /(\.png|\.jpe?g|\.gif|\.webp|\.svg)(\?|$)/i.test(v)
+          || /qrserver\.com|qrcode|vietqr\.io|img\.vietqr\.io/i.test(v);
+      }
+      return false;
+    }
+
+    function renderQrImage(src, alt) {
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = alt || 'Mã QR thanh toán';
+      img.width = 260;
+      img.height = 260;
+      img.style.width = '260px';
+      img.style.height = '260px';
+      img.style.objectFit = 'contain';
+      return img;
+    }
+
+    function renderQrViaApi(payload) {
+      return renderQrImage(
+        'https://api.qrserver.com/v1/create-qr-code/?size=260x260&ecc=M&margin=10&data=' + encodeURIComponent(payload),
+        'Mã QR thanh toán'
+      );
+    }
+
+    function renderQrCanvas(payload) {
+      return new Promise((resolve, reject) => {
+        if (typeof QRCode === 'undefined' || typeof QRCode.toCanvas !== 'function') {
+          reject(new Error('QRCode lib missing'));
+          return;
+        }
+        QRCode.toCanvas(payload, {
+          width: 260,
+          margin: 2,
+          errorCorrectionLevel: 'M',
+          color: { dark: '#000000', light: '#ffffff' }
+        }, function (err, canvas) {
+          if (err) reject(err);
+          else resolve(canvas);
+        });
+      });
+    }
+
+    async function embedQr(container, primaryPayload, fallbackPayload) {
+      container.innerHTML = '';
+      const payload = (primaryPayload && String(primaryPayload).trim()) || (fallbackPayload && String(fallbackPayload).trim()) || '';
+      if (!payload) {
+        container.innerHTML = '<span style="color:var(--signal)">❌ PayOS chưa trả về mã QR</span>';
+        return false;
+      }
+
+      // PayOS đôi khi trả ảnh URL / base64
+      if (isImagePayload(payload)) {
+        container.appendChild(renderQrImage(payload, 'VietQR PayOS'));
+        return true;
+      }
+
+      try {
+        const canvas = await renderQrCanvas(payload);
+        container.appendChild(canvas);
+        return true;
+      } catch (e) {
+        // Fallback ảnh QR online — luôn nhúng được vào khung
+        try {
+          container.appendChild(renderQrViaApi(payload));
+          return true;
+        } catch (err) {
+          container.innerHTML = '<span style="color:var(--signal)">❌ Không tạo được mã QR</span>';
+          return false;
+        }
+      }
+    }
+
+    async function renderQrPage(data) {
       document.getElementById('infoOrderCode').textContent = data.order_code || '—';
       document.getElementById('infoAccountName').textContent = data.account_name || '—';
       document.getElementById('infoAccountNumber').textContent = data.account_number || '—';
@@ -226,27 +303,9 @@
         return;
       }
 
-      const qrString = data.qr_code;
       const container = document.getElementById('qrContainer');
-      container.innerHTML = '';
-
-      if (qrString && typeof QRCode !== 'undefined') {
-        QRCode.toCanvas(qrString, {
-          width: 260,
-          margin: 2,
-          color: { dark: '#000000', light: '#ffffff' }
-        }, function (err, canvas) {
-          if (err) {
-            container.innerHTML = '<span style="color:var(--signal)">❌ Không tạo được mã QR</span>';
-            return;
-          }
-          container.appendChild(canvas);
-        });
-      } else if (data.checkout_url) {
-        container.innerHTML = '<p style="color:var(--muted);padding:40px 20px;">Không có mã QR.<br>Dùng nút bên dưới để mở trang PayOS.</p>';
-      } else {
-        container.innerHTML = '<span style="color:var(--signal)">❌ PayOS chưa trả về mã QR</span>';
-      }
+      // Ưu tiên chuỗi VietQR từ PayOS; nếu thiếu thì QR của checkout_url để vẫn quét được
+      await embedQr(container, data.qr_code, data.checkout_url);
 
       if (data.checkout_url) {
         const btn = document.getElementById('btnCheckoutUrl');

@@ -139,19 +139,51 @@ class PaymentController extends Controller {
             $this->sendResponse(false, 'Không tìm thấy đơn hàng', null, 404);
         }
 
-        if (empty($order['payos_qr_code']) && empty($order['payos_checkout_url'])) {
+        $qrCode = $order['payos_qr_code'] ?? null;
+        $checkoutUrl = $order['payos_checkout_url'] ?? null;
+        $accountNumber = $order['payos_account_number'] ?? null;
+        $accountName = $order['payos_account_name'] ?? null;
+
+        // Nếu thiếu QR, gọi lại PayOS để lấy qrCode mới nhất
+        if (empty($qrCode) && PayOSConfig::isConfigured() && !empty($order['payos_order_code']) && $this->payosService) {
+            try {
+                $paymentInfo = $this->payosService->getPaymentInfo((int) $order['payos_order_code']);
+                $qrCode = $paymentInfo['qrCode'] ?? $paymentInfo['qr_code'] ?? $qrCode;
+                $checkoutUrl = $paymentInfo['checkoutUrl'] ?? $paymentInfo['checkout_url'] ?? $checkoutUrl;
+                $accountNumber = $paymentInfo['accountNumber'] ?? $paymentInfo['account_number'] ?? $accountNumber;
+                $accountName = $paymentInfo['accountName'] ?? $paymentInfo['account_name'] ?? $accountName;
+
+                if (!empty($qrCode) || !empty($checkoutUrl)) {
+                    $this->orderModel->updatePayosInfo(
+                        (int) $order['id'],
+                        (int) $order['payos_order_code'],
+                        $paymentInfo['id'] ?? $order['payos_payment_link_id'] ?? null,
+                        [
+                            'qr_code'        => $qrCode,
+                            'checkout_url'   => $checkoutUrl,
+                            'account_number' => $accountNumber,
+                            'account_name'   => $accountName,
+                        ]
+                    );
+                }
+            } catch (Exception $e) {
+                // giữ dữ liệu DB hiện có
+            }
+        }
+
+        if (empty($qrCode) && empty($checkoutUrl)) {
             $this->sendResponse(false, 'Không có thông tin QR cho đơn hàng này', null, 404);
         }
 
         $this->sendResponse(true, 'Lấy thông tin QR thành công', [
-            'order_code'      => $order['order_code'],
-            'payos_order_code'=> $order['payos_order_code'],
-            'payment_status'  => $order['payment_status'],
-            'total_amount'    => $order['total_amount'],
-            'qr_code'         => $order['payos_qr_code'],
-            'checkout_url'    => $order['payos_checkout_url'],
-            'account_number'  => $order['payos_account_number'],
-            'account_name'    => $order['payos_account_name'],
+            'order_code'       => $order['order_code'],
+            'payos_order_code' => $order['payos_order_code'],
+            'payment_status'   => $order['payment_status'],
+            'total_amount'     => $order['total_amount'],
+            'qr_code'          => $qrCode,
+            'checkout_url'     => $checkoutUrl,
+            'account_number'   => $accountNumber,
+            'account_name'     => $accountName,
         ]);
     }
 }

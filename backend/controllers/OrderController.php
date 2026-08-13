@@ -92,24 +92,32 @@ class OrderController extends Controller {
                     $payosItems
                 );
 
+                $qrCode = $paymentData['qrCode']
+                    ?? $paymentData['qr_code']
+                    ?? $paymentData['qrLink']
+                    ?? null;
+                $checkoutUrl = $paymentData['checkoutUrl']
+                    ?? $paymentData['checkout_url']
+                    ?? null;
+
                 $this->orderModel->updatePayosInfo(
                     $orderId,
                     $payosOrderCode,
                     $paymentData['paymentLinkId'] ?? null,
                     [
                         'payment_link_id' => $paymentData['paymentLinkId'] ?? null,
-                        'qr_code'         => $paymentData['qrCode'] ?? null,
-                        'checkout_url'    => $paymentData['checkoutUrl'] ?? null,
-                        'account_number'  => $paymentData['accountNumber'] ?? null,
-                        'account_name'    => $paymentData['accountName'] ?? null,
+                        'qr_code'         => $qrCode,
+                        'checkout_url'    => $checkoutUrl,
+                        'account_number'  => $paymentData['accountNumber'] ?? $paymentData['account_number'] ?? null,
+                        'account_name'    => $paymentData['accountName'] ?? $paymentData['account_name'] ?? null,
                     ]
                 );
 
-                $responseData['checkout_url']    = $paymentData['checkoutUrl'] ?? null;
-                $responseData['qr_code']         = $paymentData['qrCode'] ?? null;
-                $responseData['account_number']  = $paymentData['accountNumber'] ?? null;
-                $responseData['account_name']    = $paymentData['accountName'] ?? null;
-                $responseData['amount']          = $amount;
+                $responseData['checkout_url']     = $checkoutUrl;
+                $responseData['qr_code']          = $qrCode;
+                $responseData['account_number']   = $paymentData['accountNumber'] ?? $paymentData['account_number'] ?? null;
+                $responseData['account_name']     = $paymentData['accountName'] ?? $paymentData['account_name'] ?? null;
+                $responseData['amount']           = $amount;
                 $responseData['payos_order_code'] = $payosOrderCode;
 
                 if (empty($responseData['qr_code']) && empty($responseData['checkout_url'])) {
