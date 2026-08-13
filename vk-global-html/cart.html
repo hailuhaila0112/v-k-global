@@ -61,7 +61,8 @@
   <script src="js/services.js"></script>
   <script src="js/main.js"></script>
   <script>
-    const FREE_SHIPPING_THRESHOLD = 15000000; // Miễn phí vận chuyển cho đơn hàng từ 15 triệu
+    let shippingFee = 30000;
+    let freeShippingThreshold = 15000000;
 
     async function renderCart() {
       const container = document.getElementById("cart-container");
@@ -83,7 +84,6 @@
       let total = 0;
       let html = '<div style="display: flex; flex-direction: column; gap: 24px;">';
 
-      // Fetch all products from API to match cart items
       const productsList = await productService.getAll();
 
       cart.forEach(item => {
@@ -117,11 +117,14 @@
         }
       });
 
+      const appliedShip = (freeShippingThreshold > 0 && total >= freeShippingThreshold) ? 0 : shippingFee;
+
       html += `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 20px; border-top: 2px solid var(--border); flex-wrap: wrap; gap: 16px;">
           <div>
             <span style="font-size: 16px; font-weight: 700; color: var(--muted);">Tổng giá trị đơn hàng:</span>
             <div style="font-size: 28px; font-weight: 800; color: var(--brand); margin-top: 4px;">${formatCurrency(total)}</div>
+            <div style="font-size: 13px; color: var(--muted); margin-top: 6px;">Phí vận chuyển: <strong>${appliedShip === 0 ? 'Miễn phí' : formatCurrency(appliedShip)}</strong></div>
           </div>
           <div style="display: flex; gap: 12px;">
             <a href="index.html" class="btn btn-secondary" style="padding: 14px 24px;">Tiếp tục mua sắm</a>
@@ -138,16 +141,23 @@
       const text = document.getElementById("shipping-progress-text");
       const bar = document.getElementById("shipping-progress-bar");
       const percent = document.getElementById("shipping-progress-percent");
+      const container = document.getElementById("shipping-progress-container");
       if (!text || !bar || !percent) return;
 
-      if (total >= FREE_SHIPPING_THRESHOLD) {
+      if (freeShippingThreshold <= 0) {
+        if (container) container.style.display = 'none';
+        return;
+      }
+      if (container) container.style.display = '';
+
+      if (total >= freeShippingThreshold) {
         text.textContent = "🎉 Chúc mừng! Đơn hàng của bạn đã đủ điều kiện MIỄN PHÍ VẬN CHUYỂN!";
         bar.style.width = "100%";
         percent.textContent = "100%";
       } else {
-        const remaining = FREE_SHIPPING_THRESHOLD - total;
-        const pct = Math.min(Math.round((total / FREE_SHIPPING_THRESHOLD) * 100), 100);
-        text.textContent = `Mua thêm ${formatCurrency(remaining)} để được MIỄN PHÍ VẬN CHUYỂN toàn quốc!`;
+        const remaining = freeShippingThreshold - total;
+        const pct = Math.min(Math.round((total / freeShippingThreshold) * 100), 100);
+        text.textContent = `Mua thêm ${formatCurrency(remaining)} để được MIỄN PHÍ VẬN CHUYỂN (phí hiện tại: ${formatCurrency(shippingFee)})!`;
         bar.style.width = `${pct}%`;
         percent.textContent = `${pct}%`;
       }
@@ -184,7 +194,12 @@
       window.location.href = "checkout.html";
     }
 
-    document.addEventListener("DOMContentLoaded", renderCart);
+    document.addEventListener("DOMContentLoaded", async () => {
+      const settings = await settingsService.getShipping();
+      shippingFee = settings.shipping_fee;
+      freeShippingThreshold = settings.free_shipping_threshold;
+      renderCart();
+    });
   </script>
 </body>
 

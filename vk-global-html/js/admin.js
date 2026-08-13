@@ -1450,6 +1450,71 @@ async function deleteMessage() {
   }
 }
 
+// ===== SHIPPING SETTINGS =====
+async function loadShippingSettings() {
+  const result = await fetchAdmin('/settings/shipping');
+  if (!result.success || !result.data) {
+    showToast('❌ Không tải được cấu hình vận chuyển');
+    return;
+  }
+  document.getElementById('settingShippingFee').value = result.data.shipping_fee;
+  document.getElementById('settingFreeShipThreshold').value = result.data.free_shipping_threshold;
+  updateShippingPreview();
+}
+
+function updateShippingPreview() {
+  const fee = Number(document.getElementById('settingShippingFee')?.value || 0);
+  const threshold = Number(document.getElementById('settingFreeShipThreshold')?.value || 0);
+  const fmt = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
+  const el = document.getElementById('shippingPreview');
+  if (!el) return;
+  if (threshold <= 0) {
+    el.textContent = `Xem trước: mọi đơn hàng đều tính phí ${fmt(fee)}.`;
+  } else {
+    el.textContent = `Xem trước: phí ${fmt(fee)}; miễn phí khi đơn từ ${fmt(threshold)}.`;
+  }
+}
+
+async function saveShippingSettings(e) {
+  e.preventDefault();
+  const fee = Number(document.getElementById('settingShippingFee').value);
+  const threshold = Number(document.getElementById('settingFreeShipThreshold').value);
+  const btn = document.getElementById('btnSaveShipping');
+  btn.disabled = true;
+  btn.textContent = '⏳ Đang lưu...';
+
+  try {
+    const res = await fetch(`${ADMIN_API}/settings/shipping`, {
+      method: 'PUT',
+      headers: getAdminHeaders(),
+      body: JSON.stringify({
+        shipping_fee: fee,
+        free_shipping_threshold: threshold
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('✅ Đã lưu cấu hình vận chuyển');
+      if (data.data) {
+        document.getElementById('settingShippingFee').value = data.data.shipping_fee;
+        document.getElementById('settingFreeShipThreshold').value = data.data.free_shipping_threshold;
+        updateShippingPreview();
+      }
+    } else {
+      showToast('❌ ' + (data.message || 'Lưu thất bại'));
+    }
+  } catch (err) {
+    showToast('❌ Không thể kết nối máy chủ');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '💾 Lưu cấu hình';
+  return false;
+}
+
+document.getElementById('settingShippingFee')?.addEventListener('input', updateShippingPreview);
+document.getElementById('settingFreeShipThreshold')?.addEventListener('input', updateShippingPreview);
+
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', async () => {
   const user = await checkAdminAuth();
@@ -1470,4 +1535,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadProducts();
   loadUsers();
   loadMessages();
+  loadShippingSettings();
 });

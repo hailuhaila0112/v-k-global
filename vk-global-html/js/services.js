@@ -153,6 +153,27 @@ const orderService = {
   }
 };
 
+// 5b. SETTINGS SERVICE
+const settingsService = {
+  async getShipping() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/settings/shipping`);
+      const result = await response.json();
+      if (result.success && result.data) {
+        const fee = Number(result.data.shipping_fee);
+        const threshold = Number(result.data.free_shipping_threshold);
+        return {
+          shipping_fee: Number.isFinite(fee) ? fee : 30000,
+          free_shipping_threshold: Number.isFinite(threshold) ? threshold : 15000000
+        };
+      }
+    } catch (e) {
+      console.error("Get shipping settings failed:", e);
+    }
+    return { shipping_fee: 30000, free_shipping_threshold: 15000000 };
+  }
+};
+
 // 6. CONTACT SERVICE
 const contactService = {
   async submit(name, email, message) {

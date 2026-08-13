@@ -46,6 +46,11 @@
           <span class="nav-icon">💬</span>
           <span class="nav-label">Liên hệ</span>
         </a>
+        <div class="nav-section-label">Cấu hình</div>
+        <a href="#" class="nav-item" data-page="shipping">
+          <span class="nav-icon">🚚</span>
+          <span class="nav-label">Vận chuyển</span>
+        </a>
       </nav>
       <div class="sidebar-footer">
         <a href="index.html" class="nav-item" id="backToSite">
@@ -495,6 +500,38 @@
               <h3>Chưa có tin nhắn nào</h3>
               <p>Tin nhắn từ khách hàng sẽ hiển thị ở đây</p>
             </div>
+          </div>
+        </div>
+
+        <!-- Shipping Settings Page -->
+        <div class="page" id="page-shipping">
+          <div class="section-header">
+            <div>
+              <h2>Cấu hình vận chuyển</h2>
+              <p>Thiết lập phí ship và ngưỡng miễn phí vận chuyển</p>
+            </div>
+            <div class="section-actions">
+              <button class="btn btn-secondary" onclick="loadShippingSettings()">🔄</button>
+            </div>
+          </div>
+
+          <div class="card" style="max-width: 560px; padding: 28px; border-radius: 16px; border: 1px solid var(--border);">
+            <form id="shippingSettingsForm" onsubmit="return saveShippingSettings(event)">
+              <div class="form-group" style="margin-bottom: 20px;">
+                <label for="settingShippingFee" style="display:block; font-weight:700; margin-bottom:8px;">Phí vận chuyển (₫)</label>
+                <input type="number" id="settingShippingFee" min="0" step="1000" class="form-control" required
+                       style="width:100%; padding:12px 14px; border:1px solid var(--border); border-radius:10px; font-size:15px;">
+                <p style="margin-top:6px; font-size:12px; color:var(--muted);">Áp dụng khi đơn hàng chưa đạt ngưỡng miễn phí</p>
+              </div>
+              <div class="form-group" style="margin-bottom: 24px;">
+                <label for="settingFreeShipThreshold" style="display:block; font-weight:700; margin-bottom:8px;">Ngưỡng miễn phí vận chuyển (₫)</label>
+                <input type="number" id="settingFreeShipThreshold" min="0" step="1000" class="form-control" required
+                       style="width:100%; padding:12px 14px; border:1px solid var(--border); border-radius:10px; font-size:15px;">
+                <p style="margin-top:6px; font-size:12px; color:var(--muted);">Đơn từ mức này trở lên sẽ được miễn phí ship. Đặt 0 để luôn tính phí.</p>
+              </div>
+              <div id="shippingPreview" style="background:var(--bg); border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:20px; font-size:13px; color:var(--muted);"></div>
+              <button type="submit" class="btn btn-primary" id="btnSaveShipping" style="padding:12px 24px;">💾 Lưu cấu hình</button>
+            </form>
           </div>
         </div>
       </div>

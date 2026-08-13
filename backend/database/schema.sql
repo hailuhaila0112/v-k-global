@@ -1,4 +1,4 @@
--- V.K Global Enterprise Database Schema
+﻿-- V.K Global Enterprise Database Schema
 CREATE DATABASE IF NOT EXISTS vk_global_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE vk_global_db;
 
@@ -142,8 +142,21 @@ CREATE TABLE IF NOT EXISTS sliders (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
+-- 13. SETTINGS
+CREATE TABLE IF NOT EXISTS settings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    setting_key VARCHAR(100) NOT NULL UNIQUE,
+    setting_value TEXT NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+INSERT INTO settings (setting_key, setting_value) VALUES
+    ('shipping_fee', '30000'),
+    ('free_shipping_threshold', '15000000')
+ON DUPLICATE KEY UPDATE setting_key = setting_key;
+
 -- Seed Roles
-INSERT INTO roles (id, name) VALUES (1, 'admin'), (2, 'customer') ON DUPLICATE KEY UPDATE name=name;
+INSERT INTO roles (id, name) VALUES (1, 'admin'), (2, 'user') ON DUPLICATE KEY UPDATE name=name;
 
 -- Migration: add reply columns (run once if upgrading an existing database)
 -- ALTER TABLE contact_messages ADD COLUMN reply TEXT NULL AFTER message;

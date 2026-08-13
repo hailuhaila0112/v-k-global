@@ -65,10 +65,15 @@ $router->add('POST', '/api/chat', 'ChatController@respond');
 $router->add('POST', '/api/orders/checkout', 'OrderController@checkout');
 $router->add('GET', '/api/orders/my', 'OrderController@getMyOrders');
 
+// Settings (public shipping config for cart/checkout)
+$router->add('GET', '/api/settings/shipping', 'SettingsController@getShipping');
+
 // Admin Dashboard Routes
 $router->add('GET', '/api/admin/stats', 'DashboardController@getStats');
 $router->add('GET', '/api/admin/orders', 'DashboardController@getOrders');
 $router->add('PUT', '/api/admin/orders/status', 'DashboardController@updateOrderStatus');
+$router->add('GET', '/api/admin/settings/shipping', 'SettingsController@getShippingAdmin');
+$router->add('PUT', '/api/admin/settings/shipping', 'SettingsController@updateShipping');
 $router->add('GET', '/api/admin/users', 'UserController@getAll');
 
 // Admin User CRUD

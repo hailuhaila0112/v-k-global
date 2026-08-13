@@ -207,7 +207,7 @@
           </div>
 
           <div class="checkout-summary-extra">
-            <div class="checkout-extra-item">🚚 Miễn phí vận chuyển cho đơn hàng từ 15.000.000₫</div>
+            <div class="checkout-extra-item" id="co-free-ship-hint">🚚 Đang tải cấu hình vận chuyển...</div>
             <div class="checkout-extra-item">🔒 Thông tin thanh toán được bảo mật</div>
             <div class="checkout-extra-item">📦 Giao hàng toàn quốc từ 3-7 ngày</div>
           </div>
@@ -245,7 +245,8 @@
   <script src="js/services.js"></script>
   <script src="js/main.js"></script>
   <script>
-    const FREE_SHIPPING_THRESHOLD = 15000000;
+    let shippingFee = 30000;
+    let freeShippingThreshold = 15000000;
 
     let checkoutCart = [];
     let checkoutProducts = [];
@@ -270,8 +271,26 @@
         return;
       }
 
+      const settings = await settingsService.getShipping();
+      shippingFee = settings.shipping_fee;
+      freeShippingThreshold = settings.free_shipping_threshold;
+
+      const hint = document.getElementById('co-free-ship-hint');
+      if (hint) {
+        if (freeShippingThreshold > 0) {
+          hint.textContent = `🚚 Miễn phí vận chuyển cho đơn hàng từ ${formatCurrency(freeShippingThreshold)} (phí thường: ${formatCurrency(shippingFee)})`;
+        } else {
+          hint.textContent = `🚚 Phí vận chuyển cố định: ${formatCurrency(shippingFee)}`;
+        }
+      }
+
       checkoutProducts = await productService.getAll();
       renderCheckout();
+    }
+
+    function calcShipping(subtotal) {
+      if (freeShippingThreshold > 0 && subtotal >= freeShippingThreshold) return 0;
+      return shippingFee;
     }
 
     function renderCheckout() {
@@ -311,19 +330,20 @@
       });
 
       checkoutTotal = subtotal;
+      const ship = calcShipping(subtotal);
+      const grandTotal = subtotal + ship;
 
       document.getElementById('co-item-count').textContent = checkoutCart.length;
       document.getElementById('co-items-list').innerHTML = itemsHtml.join('');
       document.getElementById('co-summary-items').innerHTML = summaryHtml.join('');
       document.getElementById('co-summary-count').textContent = checkoutCart.length;
 
-      const freeShip = subtotal >= FREE_SHIPPING_THRESHOLD;
       document.getElementById('co-subtotal').textContent = formatCurrency(subtotal);
-      document.getElementById('co-shipping').textContent = freeShip ? 'Miễn phí' : formatCurrency(30000);
-      document.getElementById('co-total').textContent = formatCurrency(subtotal + (freeShip ? 0 : 30000));
+      document.getElementById('co-shipping').textContent = ship === 0 ? 'Miễn phí' : formatCurrency(ship);
+      document.getElementById('co-total').textContent = formatCurrency(grandTotal);
 
-      document.getElementById('co-total-mobile').textContent = formatCurrency(subtotal + (freeShip ? 0 : 30000));
-      document.getElementById('co-submit-total').textContent = formatCurrency(subtotal + (freeShip ? 0 : 30000));
+      document.getElementById('co-total-mobile').textContent = formatCurrency(grandTotal);
+      document.getElementById('co-submit-total').textContent = formatCurrency(grandTotal);
 
       // Show discount row only if there's original_price product
       const hasDiscount = checkoutCart.some(item => {
@@ -387,9 +407,8 @@
         };
       });
 
-      const freeShip = checkoutTotal >= FREE_SHIPPING_THRESHOLD;
-      const shippingFee = freeShip ? 0 : 30000;
-      const totalAmount = checkoutTotal + shippingFee;
+      const shippingCost = calcShipping(checkoutTotal);
+      const totalAmount = checkoutTotal + shippingCost;
 
       const result = await orderService.createOrder({
         total_amount: totalAmount,
