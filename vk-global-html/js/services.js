@@ -63,10 +63,12 @@ const productService = {
     try {
       const response = await fetch(`${API_BASE_URL}/products`);
       const result = await response.json();
-      return result.success && result.data ? result.data : (typeof products !== 'undefined' ? [...products] : []);
+      const list = result.success && result.data ? result.data : (typeof products !== 'undefined' ? [...products] : []);
+      return (list || []).map(p => ({ ...p, id: p.id != null && !isNaN(Number(p.id)) ? Number(p.id) : p.id }));
     } catch (error) {
       console.error("Fetch products failed, using local fallback:", error);
-      return typeof products !== 'undefined' ? [...products] : [];
+      const list = typeof products !== 'undefined' ? [...products] : [];
+      return list.map(p => ({ ...p, id: p.id != null && !isNaN(Number(p.id)) ? Number(p.id) : p.id }));
     }
   },
 
@@ -78,9 +80,16 @@ const productService = {
     try {
       const response = await fetch(`${API_BASE_URL}/products/${id}`);
       const result = await response.json();
-      return result.success && result.data ? result.data : (typeof products !== 'undefined' ? products.find(p => p.id === id) || null : null);
+      if (result.success && result.data) {
+        const p = result.data;
+        return { ...p, id: p.id != null && !isNaN(Number(p.id)) ? Number(p.id) : p.id };
+      }
+      if (typeof products !== 'undefined') {
+        return products.find(p => String(p.id) === String(id)) || null;
+      }
+      return null;
     } catch (error) {
-      return typeof products !== 'undefined' ? products.find(p => p.id === id) || null : null;
+      return typeof products !== 'undefined' ? products.find(p => String(p.id) === String(id)) || null : null;
     }
   }
 };
@@ -88,7 +97,20 @@ const productService = {
 // 3. CART SERVICE
 const cartService = {
   getCart() {
-    return JSON.parse(localStorage.getItem("vk_cart")) || [];
+    try {
+      const raw = JSON.parse(localStorage.getItem("vk_cart")) || [];
+      if (!Array.isArray(raw)) return [];
+      // Normalize legacy keys
+      return raw.map(item => ({
+        productId: item.productId ?? item.product_id ?? item.id,
+        quantity: Number(item.quantity ?? item.qty ?? 1) || 1,
+        name: item.name || '',
+        price: Number(item.price) || 0,
+        image: item.image || ''
+      })).filter(item => item.productId != null && item.productId !== '');
+    } catch (e) {
+      return [];
+    }
   },
 
   saveCart(cart) {
@@ -181,7 +203,10 @@ const orderService = {
 const settingsService = {
   async getShipping() {
     try {
-      const response = await fetch(`${API_BASE_URL}/settings/shipping`);
+      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const timer = controller ? setTimeout(() => controller.abort(), 8000) : null;
+      const response = await fetch(`${API_BASE_URL}/settings/shipping`, controller ? { signal: controller.signal } : undefined);
+      if (timer) clearTimeout(timer);
       const result = await response.json();
       if (result.success && result.data) {
         const fee = Number(result.data.shipping_fee);

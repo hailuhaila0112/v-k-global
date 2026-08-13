@@ -260,10 +260,147 @@
   <script>
     let shippingFee = 30000;
     let freeShippingThreshold = 15000000;
+    let shippingName = 'Giao hàng tiêu chuẩn';
 
     let checkoutCart = [];
-    let checkoutProducts = [];
+    let checkoutLines = []; // { item, product }
     let checkoutTotal = 0;
+
+    function applyShippingHint() {
+      const hint = document.getElementById('co-free-ship-hint');
+      if (!hint) return;
+      if (freeShippingThreshold > 0) {
+        hint.textContent = `🚚 ${shippingName}: ${formatCurrency(shippingFee)} — miễn phí từ ${formatCurrency(freeShippingThreshold)}`;
+      } else {
+        hint.textContent = `🚚 ${shippingName}: ${formatCurrency(shippingFee)}`;
+      }
+    }
+
+    function calcShipping(subtotal) {
+      if (freeShippingThreshold > 0 && subtotal >= freeShippingThreshold) return 0;
+      return Number(shippingFee) || 0;
+    }
+
+    function updateTotals(subtotal) {
+      checkoutTotal = subtotal;
+      const ship = calcShipping(subtotal);
+      const grandTotal = subtotal + ship;
+
+      const setText = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+      };
+
+      setText('co-subtotal', formatCurrency(subtotal));
+      setText('co-shipping', ship === 0 ? 'Miễn phí' : formatCurrency(ship));
+      setText('co-total', formatCurrency(grandTotal));
+      setText('co-total-mobile', formatCurrency(grandTotal));
+      setText('co-submit-total', formatCurrency(grandTotal));
+
+      const selectedPayment = document.querySelector('input[name="payment"]:checked')?.value || 'COD';
+      updateSubmitButtonLabel(selectedPayment);
+    }
+
+    async function resolveCheckoutLines(cartItems) {
+      let productsList = [];
+      try {
+        productsList = await productService.getAll();
+      } catch (e) {
+        console.error(e);
+      }
+      if (!Array.isArray(productsList)) productsList = [];
+
+      const map = new Map(productsList.map(p => [String(p.id), p]));
+      if (typeof cachedProducts !== 'undefined' && Array.isArray(cachedProducts)) {
+        cachedProducts.forEach(p => {
+          if (!map.has(String(p.id))) map.set(String(p.id), p);
+        });
+      }
+
+      const lines = [];
+      for (const item of cartItems) {
+        const id = item.productId;
+        let product = map.get(String(id));
+
+        if (!product) {
+          try {
+            product = await productService.getById(id);
+          } catch (e) {}
+        }
+
+        // Fallback: use snapshot saved in cart
+        if (!product && (item.name || item.price)) {
+          product = {
+            id: id,
+            name: item.name || ('Sản phẩm #' + id),
+            price: Number(item.price) || 0,
+            image: item.image || ''
+          };
+        }
+
+        if (product) {
+          lines.push({ item, product });
+        }
+      }
+      return lines;
+    }
+
+    function renderCheckout() {
+      const itemsHtml = [];
+      const summaryHtml = [];
+      let subtotal = 0;
+
+      checkoutLines.forEach(({ item, product: p }) => {
+        const qty = Number(item.quantity) || 1;
+        const price = Number(p.price) || 0;
+        const lineTotal = price * qty;
+        subtotal += lineTotal;
+
+        itemsHtml.push(`
+          <div class="co-item">
+            <img src="${p.image || 'https://via.placeholder.com/60'}" alt="${p.name || ''}" class="co-item-img">
+            <div class="co-item-info">
+              <div class="co-item-name">${p.name || 'Sản phẩm'}</div>
+              <div class="co-item-meta">SL: ${qty} × ${formatCurrency(price)}</div>
+            </div>
+            <div class="co-item-total">${formatCurrency(lineTotal)}</div>
+          </div>
+        `);
+
+        summaryHtml.push(`
+          <div class="co-summary-item">
+            <img src="${p.image || 'https://via.placeholder.com/40'}" alt="">
+            <div class="co-summary-item-info">
+              <div class="co-summary-item-name">${p.name || 'Sản phẩm'}</div>
+              <div class="co-summary-item-qty">x${qty}</div>
+            </div>
+            <div class="co-summary-item-price">${formatCurrency(lineTotal)}</div>
+          </div>
+        `);
+      });
+
+      const itemsList = document.getElementById('co-items-list');
+      const summaryItems = document.getElementById('co-summary-items');
+
+      if (checkoutLines.length === 0) {
+        if (itemsList) {
+          itemsList.innerHTML = `<p style="color:var(--muted);padding:12px 0;">Không tải được sản phẩm. <button class="btn btn-secondary" style="margin-left:8px;padding:6px 12px;" onclick="initCheckout()">Thử lại</button></p>`;
+        }
+        if (summaryItems) summaryItems.innerHTML = '';
+      } else {
+        if (itemsList) itemsList.innerHTML = itemsHtml.join('');
+        if (summaryItems) summaryItems.innerHTML = summaryHtml.join('');
+      }
+
+      document.getElementById('co-item-count').textContent = checkoutLines.length;
+      document.getElementById('co-summary-count').textContent = checkoutLines.length;
+
+      updateTotals(subtotal);
+
+      const hasDiscount = checkoutLines.some(({ product: p }) => p.original_price && Number(p.original_price) > Number(p.price));
+      const discountRow = document.getElementById('co-discount-row');
+      if (discountRow) discountRow.style.display = hasDiscount ? 'flex' : 'none';
+    }
 
     async function initCheckout() {
       const user = authService.getCurrentUser();
@@ -273,101 +410,40 @@
         return;
       }
 
-      // Pre-fill user info
       document.getElementById('co-name').value = user.name || '';
       document.getElementById('co-email').value = user.email || '';
 
+      // Show default shipping immediately
+      applyShippingHint();
+      updateTotals(0);
+
       checkoutCart = cartService.getCart();
       if (typeof cart !== 'undefined') cart = checkoutCart;
-      if (checkoutCart.length === 0) {
+
+      if (!checkoutCart.length) {
         showToast('🛒 Giỏ hàng trống');
         setTimeout(() => window.location.href = 'cart.html', 1500);
         return;
       }
 
-      const settings = await settingsService.getShipping();
-      shippingFee = settings.shipping_fee;
-      freeShippingThreshold = settings.free_shipping_threshold;
+      document.getElementById('co-items-list').innerHTML = '<p style="color:var(--muted);">⏳ Đang tải sản phẩm...</p>';
 
-      const hint = document.getElementById('co-free-ship-hint');
-      if (hint) {
-        if (freeShippingThreshold > 0) {
-          hint.textContent = `🚚 Miễn phí vận chuyển cho đơn hàng từ ${formatCurrency(freeShippingThreshold)} (phí thường: ${formatCurrency(shippingFee)})`;
-        } else {
-          hint.textContent = `🚚 Phí vận chuyển cố định: ${formatCurrency(shippingFee)}`;
-        }
+      const [settings, lines] = await Promise.all([
+        settingsService.getShipping().catch(() => null),
+        resolveCheckoutLines(checkoutCart)
+      ]);
+
+      if (settings) {
+        shippingFee = Number(settings.shipping_fee);
+        if (!Number.isFinite(shippingFee)) shippingFee = 30000;
+        freeShippingThreshold = Number(settings.free_shipping_threshold);
+        if (!Number.isFinite(freeShippingThreshold)) freeShippingThreshold = 15000000;
+        shippingName = settings.name || shippingName;
+        applyShippingHint();
       }
 
-      checkoutProducts = await productService.getAll();
+      checkoutLines = lines;
       renderCheckout();
-    }
-
-    function calcShipping(subtotal) {
-      if (freeShippingThreshold > 0 && subtotal >= freeShippingThreshold) return 0;
-      return shippingFee;
-    }
-
-    function renderCheckout() {
-      let subtotal = 0;
-      const itemsHtml = [];
-      const summaryHtml = [];
-
-      checkoutCart.forEach(item => {
-        const p = checkoutProducts.find(prod => String(prod.id) === String(item.productId));
-        if (!p) return;
-        const lineTotal = Number(p.price) * Number(item.quantity);
-        subtotal += lineTotal;
-
-        // Items list (left)
-        itemsHtml.push(`
-          <div class="co-item">
-            <img src="${p.image || 'https://via.placeholder.com/60'}" alt="${p.name}" class="co-item-img">
-            <div class="co-item-info">
-              <div class="co-item-name">${p.name}</div>
-              <div class="co-item-meta">SL: ${item.quantity} × ${formatCurrency(p.price)}</div>
-            </div>
-            <div class="co-item-total">${formatCurrency(lineTotal)}</div>
-          </div>
-        `);
-
-        // Summary items (right)
-        summaryHtml.push(`
-          <div class="co-summary-item">
-            <img src="${p.image || 'https://via.placeholder.com/40'}" alt="">
-            <div class="co-summary-item-info">
-              <div class="co-summary-item-name">${p.name}</div>
-              <div class="co-summary-item-qty">x${item.quantity}</div>
-            </div>
-            <div class="co-summary-item-price">${formatCurrency(lineTotal)}</div>
-          </div>
-        `);
-      });
-
-      checkoutTotal = subtotal;
-      const ship = calcShipping(subtotal);
-      const grandTotal = subtotal + ship;
-
-      document.getElementById('co-item-count').textContent = checkoutCart.length;
-      document.getElementById('co-items-list').innerHTML = itemsHtml.join('');
-      document.getElementById('co-summary-items').innerHTML = summaryHtml.join('');
-      document.getElementById('co-summary-count').textContent = checkoutCart.length;
-
-      document.getElementById('co-subtotal').textContent = formatCurrency(subtotal);
-      document.getElementById('co-shipping').textContent = ship === 0 ? 'Miễn phí' : formatCurrency(ship);
-      document.getElementById('co-total').textContent = formatCurrency(grandTotal);
-
-      document.getElementById('co-total-mobile').textContent = formatCurrency(grandTotal);
-      document.getElementById('co-submit-total').textContent = formatCurrency(grandTotal);
-
-      const selectedPayment = document.querySelector('input[name="payment"]:checked')?.value || 'COD';
-      updateSubmitButtonLabel(selectedPayment);
-
-      // Show discount row only if there's original_price product
-      const hasDiscount = checkoutCart.some(item => {
-        const p = checkoutProducts.find(prod => String(prod.id) === String(item.productId));
-        return p && p.original_price && p.original_price > p.price;
-      });
-      document.getElementById('co-discount-row').style.display = hasDiscount ? 'flex' : 'none';
     }
 
     // Payment method toggle
@@ -395,7 +471,6 @@
       submitMobile.disabled = true;
       submitMobile.innerHTML = '⏳ Đang xử lý...';
 
-      // Validate
       const name = document.getElementById('co-name').value.trim();
       const phone = document.getElementById('co-phone').value.trim();
       const email = document.getElementById('co-email').value.trim();
@@ -408,7 +483,6 @@
         submitBtn.innerHTML = '<span class="btn-icon">✨</span><span>Đặt hàng — <strong id="co-submit-total">0₫</strong></span>';
         submitMobile.disabled = false;
         submitMobile.innerHTML = '<span>Đặt hàng</span><span id="co-total-mobile">0₫</span>';
-        // Highlight empty fields
         document.querySelectorAll('.checkout-input').forEach(el => {
           if (!el.value.trim() && el.id !== 'co-note') {
             el.style.borderColor = 'var(--signal)';
@@ -421,18 +495,22 @@
         return;
       }
 
+      if (!checkoutLines.length) {
+        showToast('❌ Không có sản phẩm hợp lệ để đặt hàng');
+        submitBtn.disabled = false;
+        submitMobile.disabled = false;
+        return;
+      }
+
       const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
       const fullAddress = `${address}, ${city}`;
       const note = document.getElementById('co-note').value.trim();
 
-      const items = checkoutCart.map(item => {
-        const p = checkoutProducts.find(prod => String(prod.id) === String(item.productId));
-        return {
-          product_id: item.productId,
-          quantity: item.quantity,
-          price: p ? p.price : 0
-        };
-      });
+      const items = checkoutLines.map(({ item, product: p }) => ({
+        product_id: p.id ?? item.productId,
+        quantity: Number(item.quantity) || 1,
+        price: Number(p.price) || 0
+      }));
 
       const shippingCost = calcShipping(checkoutTotal);
       const totalAmount = checkoutTotal + shippingCost;
@@ -445,7 +523,6 @@
       });
 
       if (result.success) {
-        // PayOS: chuyển đến trang quét mã QR
         if (paymentMethod === 'PayOS' && result.data && result.data.payos_order_code) {
           cart = [];
           saveCart();
@@ -467,11 +544,9 @@
           return;
         }
 
-        // COD / chuyển khoản thủ công: hiện modal thành công
         cart = [];
         saveCart();
 
-        // Show success modal
         document.getElementById('orderCodeDisplay').textContent = result.data.order_code || result.data.order_id;
         document.getElementById('orderSuccessModal').classList.add('active');
 
@@ -486,18 +561,11 @@
       }
     }
 
-    // Mobile summary toggle
     document.querySelector('.checkout-summary-header')?.addEventListener('click', function () {
       if (window.innerWidth <= 900) {
         document.querySelector('.checkout-summary-sticky').classList.toggle('expanded');
       }
     });
-
-    // Update submit total reference after render
-    function updateSubmitTotal(val) {
-      const el = document.getElementById('co-submit-total');
-      if (el) el.textContent = val;
-    }
 
     document.addEventListener('DOMContentLoaded', initCheckout);
   </script>

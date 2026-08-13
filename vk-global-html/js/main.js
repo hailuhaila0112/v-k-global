@@ -46,10 +46,28 @@ function saveCart() {
 function addToCart(productId, quantity = 1) {
   const pid = String(productId);
   const existing = cart.find(item => String(item.productId) === pid);
+
+  // Snapshot product info so cart/checkout still works if API fails
+  let snap = null;
+  if (typeof cachedProducts !== 'undefined' && Array.isArray(cachedProducts)) {
+    snap = cachedProducts.find(p => String(p.id) === pid) || null;
+  }
+
   if (existing) {
     existing.quantity += quantity;
+    if (snap) {
+      existing.name = snap.name || existing.name;
+      existing.price = Number(snap.price) || existing.price;
+      existing.image = snap.image || existing.image;
+    }
   } else {
-    cart.push({ productId: isNaN(Number(productId)) ? productId : Number(productId), quantity });
+    cart.push({
+      productId: /^\d+$/.test(pid) ? Number(pid) : productId,
+      quantity,
+      name: snap?.name || '',
+      price: snap ? Number(snap.price) : 0,
+      image: snap?.image || ''
+    });
   }
   saveCart();
   showToast("🛒 Đã thêm sản phẩm vào giỏ hàng thành công!");
