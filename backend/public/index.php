@@ -18,6 +18,10 @@ register_shutdown_function(function () {
 });
 
 try {
+  // Load .env (PayOS credentials, etc.)
+  require_once __DIR__ . '/../config/Env.php';
+  Env::load();
+
   // Entry point for RESTful API routing
   require_once __DIR__ . '/../middleware/CorsMiddleware.php';
   CorsMiddleware::handle();

@@ -1,0 +1,12 @@
+# Environment secrets
+backend/.env
+
+# Logs
+backend/php_error.log
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

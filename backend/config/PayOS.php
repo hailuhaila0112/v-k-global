@@ -1,17 +1,19 @@
 <?php
 // PayOS Payment Gateway Configuration
-// Lấy thông tin tại https://my.payos.vn sau khi tạo kênh thanh toán
+// Điền giá trị trong backend/.env (xem .env.example)
+require_once __DIR__ . '/Env.php';
+
 class PayOSConfig {
     public static function get(): array {
+        Env::load();
+
         return [
-            'client_id'     => getenv('PAYOS_CLIENT_ID') ?: 'YOUR_PAYOS_CLIENT_ID',
-            'api_key'       => getenv('PAYOS_API_KEY') ?: 'YOUR_PAYOS_API_KEY',
-            'checksum_key'  => getenv('PAYOS_CHECKSUM_KEY') ?: 'YOUR_PAYOS_CHECKSUM_KEY',
+            'client_id'     => Env::get('PAYOS_CLIENT_ID', 'YOUR_PAYOS_CLIENT_ID'),
+            'api_key'       => Env::get('PAYOS_API_KEY', 'YOUR_PAYOS_API_KEY'),
+            'checksum_key'  => Env::get('PAYOS_CHECKSUM_KEY', 'YOUR_PAYOS_CHECKSUM_KEY'),
             'api_url'       => 'https://api-merchant.payos.vn',
-            // URL trang frontend (điều chỉnh theo môi trường triển khai)
-            'frontend_url'  => getenv('PAYOS_FRONTEND_URL') ?: 'http://localhost/DATTDN/vk-global-html',
-            // URL webhook (cần HTTPS công khai khi production; dùng ngrok khi dev)
-            'webhook_url'   => getenv('PAYOS_WEBHOOK_URL') ?: 'http://localhost/DATTDN/backend/public/api/payments/payos/webhook',
+            'frontend_url'  => Env::get('PAYOS_FRONTEND_URL', 'http://localhost/DATTDN/vk-global-html'),
+            'webhook_url'   => Env::get('PAYOS_WEBHOOK_URL', 'http://localhost/DATTDN/backend/public/api/payments/payos/webhook'),
         ];
     }
 
