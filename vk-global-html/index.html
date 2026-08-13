@@ -319,7 +319,9 @@
                     </div>
                     <div style="display: flex; gap: 8px;">
                       <button class="btn btn-secondary" style="padding: 8px 12px;" onclick="openQuickView('${p.id}')">Chi tiết</button>
-                      <button class="btn btn-primary" style="padding: 8px 16px;" onclick="addToCart('${p.id}')">Mua</button>
+                      <button class="btn btn-primary" style="padding: 8px 16px;"
+                        data-product='${JSON.stringify({ id: p.id, name: p.name, price: p.price, image: p.image, original_price: p.original_price || null }).replace(/'/g, "&#39;")}'
+                        onclick="addToCart(JSON.parse(this.getAttribute('data-product')))">Mua</button>
                     </div>
                   </div>
                 </div>

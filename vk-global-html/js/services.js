@@ -3,6 +3,25 @@
 
 const API_BASE_URL = "http://localhost/DATTDN/backend/public/api";
 
+async function fetchJson(url, options = {}, timeoutMs = 6000) {
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+  try {
+    const res = await fetch(url, {
+      ...options,
+      signal: controller ? controller.signal : undefined
+    });
+    const text = await res.text();
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      throw new Error('Invalid JSON from ' + url);
+    }
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 // Helper to get Auth Headers
 function getAuthHeaders() {
   const user = authService.getCurrentUser();
@@ -17,12 +36,11 @@ function getAuthHeaders() {
 const authService = {
   async login(email, password) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      const result = await fetchJson(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
       });
-      const result = await response.json();
       if (result.success && result.data) {
         localStorage.setItem("vk_user", JSON.stringify(result.data));
       }
@@ -35,12 +53,11 @@ const authService = {
 
   async register(name, email, password, phone) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      return await fetchJson(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password, phone })
       });
-      return await response.json();
     } catch (error) {
       console.error("Register error:", error);
       return { success: false, message: "Không thể kết nối đến máy chủ" };
@@ -53,7 +70,11 @@ const authService = {
   },
 
   getCurrentUser() {
-    return JSON.parse(localStorage.getItem("vk_user")) || null;
+    try {
+      return JSON.parse(localStorage.getItem("vk_user")) || null;
+    } catch (e) {
+      return null;
+    }
   }
 };
 
@@ -61,14 +82,18 @@ const authService = {
 const productService = {
   async getAll() {
     try {
-      const response = await fetch(`${API_BASE_URL}/products`);
-      const result = await response.json();
-      const list = result.success && result.data ? result.data : (typeof products !== 'undefined' ? [...products] : []);
-      return (list || []).map(p => ({ ...p, id: p.id != null && !isNaN(Number(p.id)) ? Number(p.id) : p.id }));
+      const result = await fetchJson(`${API_BASE_URL}/products`);
+      const list = result.success && result.data ? result.data : [];
+      return (list || []).map(p => ({
+        ...p,
+        id: p.id != null && !isNaN(Number(p.id)) ? Number(p.id) : p.id
+      }));
     } catch (error) {
-      console.error("Fetch products failed, using local fallback:", error);
-      const list = typeof products !== 'undefined' ? [...products] : [];
-      return list.map(p => ({ ...p, id: p.id != null && !isNaN(Number(p.id)) ? Number(p.id) : p.id }));
+      console.error("Fetch products failed:", error);
+      if (typeof cachedProducts !== 'undefined' && Array.isArray(cachedProducts) && cachedProducts.length) {
+        return [...cachedProducts];
+      }
+      return [];
     }
   },
 
@@ -78,18 +103,17 @@ const productService = {
 
   async getById(id) {
     try {
-      const response = await fetch(`${API_BASE_URL}/products/${id}`);
-      const result = await response.json();
+      const result = await fetchJson(`${API_BASE_URL}/products/${id}`);
       if (result.success && result.data) {
         const p = result.data;
         return { ...p, id: p.id != null && !isNaN(Number(p.id)) ? Number(p.id) : p.id };
       }
-      if (typeof products !== 'undefined') {
-        return products.find(p => String(p.id) === String(id)) || null;
-      }
       return null;
     } catch (error) {
-      return typeof products !== 'undefined' ? products.find(p => String(p.id) === String(id)) || null : null;
+      if (typeof cachedProducts !== 'undefined' && Array.isArray(cachedProducts)) {
+        return cachedProducts.find(p => String(p.id) === String(id)) || null;
+      }
+      return null;
     }
   }
 };
@@ -100,13 +124,13 @@ const cartService = {
     try {
       const raw = JSON.parse(localStorage.getItem("vk_cart")) || [];
       if (!Array.isArray(raw)) return [];
-      // Normalize legacy keys
       return raw.map(item => ({
         productId: item.productId ?? item.product_id ?? item.id,
         quantity: Number(item.quantity ?? item.qty ?? 1) || 1,
         name: item.name || '',
         price: Number(item.price) || 0,
-        image: item.image || ''
+        image: item.image || '',
+        original_price: item.original_price != null ? Number(item.original_price) : null
       })).filter(item => item.productId != null && item.productId !== '');
     } catch (e) {
       return [];

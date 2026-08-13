@@ -72,11 +72,10 @@
       return cart.find(i => sameProductId(i.productId, productId));
     }
 
-    async function renderCart() {
+    function paintCart(productsMap) {
       const container = document.getElementById("cart-container");
       if (!container) return;
 
-      // Always refresh from localStorage
       cart = cartService.getCart();
 
       if (!cart || cart.length === 0) {
@@ -94,64 +93,42 @@
 
       let total = 0;
       let html = '<div style="display: flex; flex-direction: column; gap: 24px;">';
-      let matched = 0;
-
-      let productsList = [];
-      try {
-        productsList = await productService.getAll();
-        if (!Array.isArray(productsList)) productsList = [];
-      } catch (e) {
-        console.error(e);
-        productsList = [];
-      }
 
       cart.forEach(item => {
-        const p = productsList.find(prod => sameProductId(prod.id, item.productId));
-        if (!p) return;
-        matched++;
+        const api = productsMap ? productsMap.get(String(item.productId)) : null;
+        const pid = item.productId;
+        const name = (api && api.name) || item.name || ('Sản phẩm #' + pid);
+        const price = Number((api && api.price) != null ? api.price : item.price) || 0;
+        const image = (api && api.image) || item.image || 'https://via.placeholder.com/80';
+        const category = (api && (api.category_name || api.category)) || '';
         const qty = Number(item.quantity) || 1;
-        const price = Number(p.price) || 0;
         const subtotal = price * qty;
         total += subtotal;
-        const category = p.category_name || p.category || '';
 
         html += `
           <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 20px; flex-wrap: wrap; gap: 20px;">
             <div style="display: flex; align-items: center; gap: 20px; flex: 1; min-width: 250px;">
-              <img src="${p.image || 'https://via.placeholder.com/80'}" alt="${p.name}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 12px; box-shadow: var(--shadow);">
+              <img src="${image}" alt="${name}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 12px; box-shadow: var(--shadow);" onerror="this.src='https://via.placeholder.com/80'">
               <div>
                 <span style="font-size: 11px; color: var(--brand); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">${category}</span>
-                <h3 style="font-size: 16px; font-weight: 800; margin: 4px 0 6px; line-height: 1.4;">${p.name}</h3>
+                <h3 style="font-size: 16px; font-weight: 800; margin: 4px 0 6px; line-height: 1.4;">${name}</h3>
                 <p style="color: var(--brand); font-weight: 800; font-size: 15px;">${formatCurrency(price)}</p>
               </div>
             </div>
             <div style="display: flex; align-items: center; gap: 24px; justify-content: space-between; width: 100%; max-width: 300px;">
               <div style="display: flex; align-items: center; gap: 12px; background: var(--bg); padding: 6px 12px; border-radius: 10px; border: 1px solid var(--border);">
-                <button class="btn" style="padding: 2px 8px; background: transparent; font-size: 16px; font-weight: bold;" onclick="changeQty('${p.id}', -1)">-</button>
+                <button class="btn" style="padding: 2px 8px; background: transparent; font-size: 16px; font-weight: bold;" onclick="changeQty('${pid}', -1)">-</button>
                 <span style="font-weight: 800; font-size: 15px; min-width: 20px; text-align: center;">${qty}</span>
-                <button class="btn" style="padding: 2px 8px; background: transparent; font-size: 16px; font-weight: bold;" onclick="changeQty('${p.id}', 1)">+</button>
+                <button class="btn" style="padding: 2px 8px; background: transparent; font-size: 16px; font-weight: bold;" onclick="changeQty('${pid}', 1)">+</button>
               </div>
               <div style="text-align: right; min-width: 100px;">
                 <div style="font-size: 16px; font-weight: 800; color: var(--ink);">${formatCurrency(subtotal)}</div>
-                <button class="btn" style="color: var(--signal); background: transparent; padding: 4px 0; font-size: 13px; font-weight: 700; margin-top: 4px;" onclick="removeItem('${p.id}')">Xóa khỏi giỏ</button>
+                <button class="btn" style="color: var(--signal); background: transparent; padding: 4px 0; font-size: 13px; font-weight: 700; margin-top: 4px;" onclick="removeItem('${pid}')">Xóa khỏi giỏ</button>
               </div>
             </div>
           </div>
         `;
       });
-
-      if (matched === 0) {
-        container.innerHTML = `
-          <div style="text-align: center; padding: 40px 0;">
-            <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 10px;">Không khớp được sản phẩm trong giỏ</h3>
-            <p style="color: var(--muted); margin-bottom: 20px;">Sản phẩm có thể đã bị xóa hoặc API chưa phản hồi. Hãy thử tải lại trang.</p>
-            <button class="btn btn-secondary" onclick="renderCart()">🔄 Tải lại</button>
-            <button class="btn btn-primary" style="margin-left:8px;" onclick="clearBrokenCart()">Xóa giỏ hàng</button>
-          </div>
-        `;
-        updateShippingProgress(0);
-        return;
-      }
 
       const appliedShip = (freeShippingThreshold > 0 && total >= freeShippingThreshold) ? 0 : shippingFee;
 
@@ -173,6 +150,32 @@
 
       container.innerHTML = html;
       updateShippingProgress(total);
+    }
+
+    async function renderCart() {
+      // Render ngay từ localStorage — không chờ API
+      paintCart(null);
+
+      try {
+        const productsList = await productService.getAll();
+        if (!Array.isArray(productsList) || !productsList.length) return;
+
+        const map = new Map(productsList.map(p => [String(p.id), p]));
+        let changed = false;
+        cart = cartService.getCart();
+        cart.forEach(item => {
+          const p = map.get(String(item.productId));
+          if (!p) return;
+          if (p.name) { item.name = p.name; changed = true; }
+          if (Number(p.price)) { item.price = Number(p.price); changed = true; }
+          if (p.image) { item.image = p.image; changed = true; }
+          if (p.original_price != null) item.original_price = Number(p.original_price);
+        });
+        if (changed) cartService.saveCart(cart);
+        paintCart(map);
+      } catch (e) {
+        console.warn('renderCart enrich failed', e);
+      }
     }
 
     function clearBrokenCart() {

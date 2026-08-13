@@ -43,34 +43,58 @@ function saveCart() {
   updateCartBadge();
 }
 
-function addToCart(productId, quantity = 1) {
+function addToCart(productId, quantity = 1, productInfo = null) {
+  // Support addToCart(productObject)
+  if (productId && typeof productId === 'object') {
+    productInfo = productId;
+    productId = productInfo.id;
+    quantity = quantity && typeof quantity === 'number' ? quantity : 1;
+  }
+
   const pid = String(productId);
+  cart = cartService.getCart();
   const existing = cart.find(item => String(item.productId) === pid);
 
-  // Snapshot product info so cart/checkout still works if API fails
-  let snap = null;
-  if (typeof cachedProducts !== 'undefined' && Array.isArray(cachedProducts)) {
+  let snap = productInfo;
+  if (!snap && typeof cachedProducts !== 'undefined' && Array.isArray(cachedProducts)) {
     snap = cachedProducts.find(p => String(p.id) === pid) || null;
   }
 
+  const payload = {
+    productId: /^\d+$/.test(pid) ? Number(pid) : productId,
+    quantity: Number(quantity) || 1,
+    name: snap?.name || '',
+    price: snap ? Number(snap.price) || 0 : 0,
+    image: snap?.image || '',
+    original_price: snap?.original_price != null ? Number(snap.original_price) : null
+  };
+
   if (existing) {
-    existing.quantity += quantity;
-    if (snap) {
-      existing.name = snap.name || existing.name;
-      existing.price = Number(snap.price) || existing.price;
-      existing.image = snap.image || existing.image;
-    }
+    existing.quantity += payload.quantity;
+    if (payload.name) existing.name = payload.name;
+    if (payload.price) existing.price = payload.price;
+    if (payload.image) existing.image = payload.image;
+    if (payload.original_price != null) existing.original_price = payload.original_price;
   } else {
-    cart.push({
-      productId: /^\d+$/.test(pid) ? Number(pid) : productId,
-      quantity,
-      name: snap?.name || '',
-      price: snap ? Number(snap.price) : 0,
-      image: snap?.image || ''
-    });
+    cart.push(payload);
   }
   saveCart();
   showToast("🛒 Đã thêm sản phẩm vào giỏ hàng thành công!");
+
+  // Enrich snapshot in background if missing (so checkout never depends on live API)
+  if (!payload.name || !payload.price) {
+    productService.getById(productId).then(p => {
+      if (!p) return;
+      cart = cartService.getCart();
+      const row = cart.find(item => String(item.productId) === pid);
+      if (!row) return;
+      row.name = p.name || row.name;
+      row.price = Number(p.price) || row.price;
+      row.image = p.image || row.image;
+      if (p.original_price != null) row.original_price = Number(p.original_price);
+      saveCart();
+    }).catch(() => {});
+  }
 }
 
 function updateCartBadge() {
@@ -230,7 +254,7 @@ async function openQuickView(productId) {
               ${specsHtml}
             </div>
           </div>
-          <button class="btn btn-primary" style="width: 100%; padding: 14px;" onclick="addToCart('${p.id}'); closeQuickView();">🛒 Thêm vào giỏ hàng</button>
+          <button class="btn btn-primary" style="width: 100%; padding: 14px;" onclick="addToCart({id: ${JSON.stringify(p.id)}, name: ${JSON.stringify(p.name)}, price: ${Number(p.price) || 0}, image: ${JSON.stringify(p.image || '')}, original_price: ${p.original_price != null ? Number(p.original_price) : 'null'}}); closeQuickView();">🛒 Thêm vào giỏ hàng</button>
         </div>
       </div>
     </div>
