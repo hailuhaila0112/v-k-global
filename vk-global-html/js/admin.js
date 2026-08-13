@@ -733,7 +733,7 @@ function openDeleteModal(type, id, name) {
   deleteTargetType = type;
   deleteTargetId = id;
   document.getElementById('deleteModalInfo').textContent = `Xóa "${name}"?`;
-  const msgs = { product: 'Sản phẩm', project: 'Dự án', slider: 'Slider', user: 'Người dùng', message: 'Tin nhắn' };
+  const msgs = { product: 'Sản phẩm', project: 'Dự án', slider: 'Slider', user: 'Người dùng', message: 'Tin nhắn', shipping: 'Phí vận chuyển' };
   document.getElementById('deleteModalSub').textContent = (msgs[type] || 'Mục') + ' sẽ bị xóa vĩnh viễn.';
   document.getElementById('deleteModal').classList.add('active');
 }
@@ -768,6 +768,10 @@ async function confirmDeleteAction() {
     endpoint = `${ADMIN_API}/messages/delete`;
     successMsg = 'Tin nhắn đã được xóa';
     callback = loadMessages;
+  } else if (deleteTargetType === 'shipping') {
+    endpoint = `${ADMIN_API}/shipping-rates`;
+    successMsg = 'Phí vận chuyển đã được xóa';
+    callback = loadShippingRates;
   } else {
     return;
   }
@@ -1450,56 +1454,101 @@ async function deleteMessage() {
   }
 }
 
-// ===== SHIPPING SETTINGS =====
-async function loadShippingSettings() {
-  const result = await fetchAdmin('/settings/shipping');
-  if (!result.success || !result.data) {
-    showToast('❌ Không tải được cấu hình vận chuyển');
+// ===== SHIPPING RATES CRUD =====
+let shippingRatesCache = [];
+
+async function loadShippingRates() {
+  const tbody = document.getElementById('shippingRatesBody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="6" class="table-empty" style="padding:24px;text-align:center;color:var(--muted);">Đang tải...</td></tr>';
+
+  const result = await fetchAdmin('/shipping-rates');
+  if (!result.success) {
+    tbody.innerHTML = `<tr><td colspan="6" class="table-empty" style="padding:24px;text-align:center;color:var(--signal);">${result.message || 'Không tải được dữ liệu'}</td></tr>`;
     return;
   }
-  document.getElementById('settingShippingFee').value = result.data.shipping_fee;
-  document.getElementById('settingFreeShipThreshold').value = result.data.free_shipping_threshold;
-  updateShippingPreview();
-}
 
-function updateShippingPreview() {
-  const fee = Number(document.getElementById('settingShippingFee')?.value || 0);
-  const threshold = Number(document.getElementById('settingFreeShipThreshold')?.value || 0);
-  const fmt = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
-  const el = document.getElementById('shippingPreview');
-  if (!el) return;
-  if (threshold <= 0) {
-    el.textContent = `Xem trước: mọi đơn hàng đều tính phí ${fmt(fee)}.`;
-  } else {
-    el.textContent = `Xem trước: phí ${fmt(fee)}; miễn phí khi đơn từ ${fmt(threshold)}.`;
+  const data = result.data || [];
+  shippingRatesCache = data;
+
+  if (data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="table-empty" style="padding:24px;text-align:center;color:var(--muted);">Chưa có gói phí vận chuyển. Hãy thêm mới.</td></tr>';
+    return;
   }
+
+  const fmt = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(n) || 0);
+
+  tbody.innerHTML = data.map(r => `
+    <tr>
+      <td style="padding:14px 16px;"><strong>${r.name}</strong></td>
+      <td style="padding:14px 16px;text-align:right;font-weight:700;">${fmt(r.fee)}</td>
+      <td style="padding:14px 16px;text-align:right;">${Number(r.free_shipping_threshold) > 0 ? fmt(r.free_shipping_threshold) : '—'}</td>
+      <td style="padding:14px 16px;text-align:center;">
+        <span style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:${Number(r.is_active) ? '#d1fae5' : '#fee2e2'};color:${Number(r.is_active) ? '#065f46' : '#991b1b'};">
+          ${Number(r.is_active) ? 'Hoạt động' : 'Tắt'}
+        </span>
+      </td>
+      <td style="padding:14px 16px;text-align:center;">${Number(r.is_default) ? '⭐' : '—'}</td>
+      <td style="padding:14px 16px;text-align:right;">
+        <button class="btn btn-secondary" style="padding:6px 10px;margin-right:6px;" onclick="editShippingRate(${r.id})">Sửa</button>
+        <button class="btn" style="padding:6px 10px;color:var(--signal);background:transparent;" onclick="openDeleteModal('shipping', ${r.id}, '${String(r.name).replace(/'/g, "\\'")}')">Xóa</button>
+      </td>
+    </tr>
+  `).join('');
 }
 
-async function saveShippingSettings(e) {
+function openShippingModal(rate = null) {
+  document.getElementById('shipRateId').value = rate?.id || '';
+  document.getElementById('shipRateName').value = rate?.name || '';
+  document.getElementById('shipRateFee').value = rate?.fee ?? 30000;
+  document.getElementById('shipRateThreshold').value = rate?.free_shipping_threshold ?? 15000000;
+  document.getElementById('shipRateActive').checked = rate ? Number(rate.is_active) === 1 : true;
+  document.getElementById('shipRateDefault').checked = rate ? Number(rate.is_default) === 1 : false;
+  document.getElementById('shippingModalTitle').textContent = rate ? 'Sửa phí vận chuyển' : 'Thêm phí vận chuyển';
+  document.getElementById('shippingModalSub').textContent = rate ? 'Cập nhật thông tin gói phí ship' : 'Tạo gói phí ship mới';
+  document.getElementById('shippingModal').classList.add('active');
+}
+
+function closeShippingModal() {
+  document.getElementById('shippingModal').classList.remove('active');
+}
+
+function editShippingRate(id) {
+  const rate = shippingRatesCache.find(r => Number(r.id) === Number(id));
+  if (rate) openShippingModal(rate);
+}
+
+async function saveShippingRate(e) {
   e.preventDefault();
-  const fee = Number(document.getElementById('settingShippingFee').value);
-  const threshold = Number(document.getElementById('settingFreeShipThreshold').value);
-  const btn = document.getElementById('btnSaveShipping');
+  const id = document.getElementById('shipRateId').value;
+  const body = {
+    name: document.getElementById('shipRateName').value.trim(),
+    fee: Number(document.getElementById('shipRateFee').value),
+    free_shipping_threshold: Number(document.getElementById('shipRateThreshold').value),
+    is_active: document.getElementById('shipRateActive').checked ? 1 : 0,
+    is_default: document.getElementById('shipRateDefault').checked ? 1 : 0
+  };
+
+  if (!body.name) {
+    showToast('❌ Vui lòng nhập tên gói');
+    return false;
+  }
+
+  const btn = document.getElementById('btnSaveShipRate');
   btn.disabled = true;
   btn.textContent = '⏳ Đang lưu...';
 
   try {
-    const res = await fetch(`${ADMIN_API}/settings/shipping`, {
-      method: 'PUT',
+    const res = await fetch(`${ADMIN_API}/shipping-rates`, {
+      method: id ? 'PUT' : 'POST',
       headers: getAdminHeaders(),
-      body: JSON.stringify({
-        shipping_fee: fee,
-        free_shipping_threshold: threshold
-      })
+      body: JSON.stringify(id ? { ...body, id: Number(id) } : body)
     });
     const data = await res.json();
     if (data.success) {
-      showToast('✅ Đã lưu cấu hình vận chuyển');
-      if (data.data) {
-        document.getElementById('settingShippingFee').value = data.data.shipping_fee;
-        document.getElementById('settingFreeShipThreshold').value = data.data.free_shipping_threshold;
-        updateShippingPreview();
-      }
+      showToast(id ? '✅ Đã cập nhật phí vận chuyển' : '✅ Đã thêm phí vận chuyển');
+      closeShippingModal();
+      loadShippingRates();
     } else {
       showToast('❌ ' + (data.message || 'Lưu thất bại'));
     }
@@ -1508,12 +1557,9 @@ async function saveShippingSettings(e) {
   }
 
   btn.disabled = false;
-  btn.textContent = '💾 Lưu cấu hình';
+  btn.textContent = '💾 Lưu';
   return false;
 }
-
-document.getElementById('settingShippingFee')?.addEventListener('input', updateShippingPreview);
-document.getElementById('settingFreeShipThreshold')?.addEventListener('input', updateShippingPreview);
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', async () => {
@@ -1535,5 +1581,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadProducts();
   loadUsers();
   loadMessages();
-  loadShippingSettings();
+  loadShippingRates();
 });

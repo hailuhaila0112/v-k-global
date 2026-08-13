@@ -69,8 +69,15 @@ $router->add('POST', '/api/chat', 'ChatController@respond');
 $router->add('POST', '/api/orders/checkout', 'OrderController@checkout');
 $router->add('GET', '/api/orders/my', 'OrderController@getMyOrders');
 
-// Settings (public shipping config for cart/checkout)
+// Settings / Shipping
 $router->add('GET', '/api/settings/shipping', 'SettingsController@getShipping');
+$router->add('GET', '/api/shipping-rates', 'SettingsController@getActiveRates');
+$router->add('GET', '/api/admin/shipping-rates', 'SettingsController@getShippingRates');
+$router->add('POST', '/api/admin/shipping-rates', 'SettingsController@createShippingRate');
+$router->add('PUT', '/api/admin/shipping-rates', 'SettingsController@updateShippingRate');
+$router->add('DELETE', '/api/admin/shipping-rates', 'SettingsController@deleteShippingRate');
+$router->add('GET', '/api/admin/settings/shipping', 'SettingsController@getShippingAdmin');
+$router->add('PUT', '/api/admin/settings/shipping', 'SettingsController@updateShipping');
 // PayOS Payment Routes
 $router->add('POST', '/api/payments/payos/webhook', 'PaymentController@webhook');
 $router->add('GET', '/api/payments/payos/status/{orderCode}', 'PaymentController@getStatus');
@@ -80,8 +87,6 @@ $router->add('GET', '/api/payments/payos/qr/{orderCode}', 'PaymentController@get
 $router->add('GET', '/api/admin/stats', 'DashboardController@getStats');
 $router->add('GET', '/api/admin/orders', 'DashboardController@getOrders');
 $router->add('PUT', '/api/admin/orders/status', 'DashboardController@updateOrderStatus');
-$router->add('GET', '/api/admin/settings/shipping', 'SettingsController@getShippingAdmin');
-$router->add('PUT', '/api/admin/settings/shipping', 'SettingsController@updateShipping');
 $router->add('GET', '/api/admin/users', 'UserController@getAll');
 
 // Admin User CRUD

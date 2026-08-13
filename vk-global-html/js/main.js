@@ -44,11 +44,12 @@ function saveCart() {
 }
 
 function addToCart(productId, quantity = 1) {
-  const existing = cart.find(item => item.productId === productId);
+  const pid = String(productId);
+  const existing = cart.find(item => String(item.productId) === pid);
   if (existing) {
     existing.quantity += quantity;
   } else {
-    cart.push({ productId, quantity });
+    cart.push({ productId: isNaN(Number(productId)) ? productId : Number(productId), quantity });
   }
   saveCart();
   showToast("🛒 Đã thêm sản phẩm vào giỏ hàng thành công!");

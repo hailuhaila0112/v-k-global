@@ -278,6 +278,7 @@
       document.getElementById('co-email').value = user.email || '';
 
       checkoutCart = cartService.getCart();
+      if (typeof cart !== 'undefined') cart = checkoutCart;
       if (checkoutCart.length === 0) {
         showToast('🛒 Giỏ hàng trống');
         setTimeout(() => window.location.href = 'cart.html', 1500);
@@ -312,9 +313,9 @@
       const summaryHtml = [];
 
       checkoutCart.forEach(item => {
-        const p = checkoutProducts.find(prod => prod.id == item.productId);
+        const p = checkoutProducts.find(prod => String(prod.id) === String(item.productId));
         if (!p) return;
-        const lineTotal = p.price * item.quantity;
+        const lineTotal = Number(p.price) * Number(item.quantity);
         subtotal += lineTotal;
 
         // Items list (left)
@@ -363,7 +364,7 @@
 
       // Show discount row only if there's original_price product
       const hasDiscount = checkoutCart.some(item => {
-        const p = checkoutProducts.find(prod => prod.id == item.productId);
+        const p = checkoutProducts.find(prod => String(prod.id) === String(item.productId));
         return p && p.original_price && p.original_price > p.price;
       });
       document.getElementById('co-discount-row').style.display = hasDiscount ? 'flex' : 'none';
@@ -425,7 +426,7 @@
       const note = document.getElementById('co-note').value.trim();
 
       const items = checkoutCart.map(item => {
-        const p = checkoutProducts.find(prod => prod.id == item.productId);
+        const p = checkoutProducts.find(prod => String(prod.id) === String(item.productId));
         return {
           product_id: item.productId,
           quantity: item.quantity,

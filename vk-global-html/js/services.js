@@ -188,13 +188,26 @@ const settingsService = {
         const threshold = Number(result.data.free_shipping_threshold);
         return {
           shipping_fee: Number.isFinite(fee) ? fee : 30000,
-          free_shipping_threshold: Number.isFinite(threshold) ? threshold : 15000000
+          free_shipping_threshold: Number.isFinite(threshold) ? threshold : 15000000,
+          shipping_rate_id: result.data.shipping_rate_id || null,
+          name: result.data.name || 'Giao hàng tiêu chuẩn'
         };
       }
     } catch (e) {
       console.error("Get shipping settings failed:", e);
     }
-    return { shipping_fee: 30000, free_shipping_threshold: 15000000 };
+    return { shipping_fee: 30000, free_shipping_threshold: 15000000, shipping_rate_id: null, name: 'Giao hàng tiêu chuẩn' };
+  },
+
+  async getShippingRates() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/shipping-rates`);
+      const result = await response.json();
+      return result.success && result.data ? result.data : [];
+    } catch (e) {
+      console.error("Get shipping rates failed:", e);
+      return [];
+    }
   }
 };
 
